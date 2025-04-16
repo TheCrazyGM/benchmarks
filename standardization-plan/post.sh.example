@@ -1,0 +1,23 @@
+#!/bin/bash
+# Post script for {PROJECT_NAME} benchmarking tool
+
+# Get the script directory
+scriptdir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+cd "$scriptdir" || exit 1
+
+# Activate virtual environment if it exists
+if [ -d ".venv" ]; then
+  source .venv/bin/activate
+fi
+
+# Load environment variables from .env file if it exists
+if [ -f ".env" ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+
+# Generate and post benchmark results
+python -m src.{PACKAGE_NAME}.cli.generate_post -p
+
+# Exit with the status code of the post generation script
+exit $?
+
