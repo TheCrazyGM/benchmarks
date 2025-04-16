@@ -15,7 +15,7 @@ if [ -f ".env" ]; then
 fi
 
 # Generate the post content and publish to Hive
-python -m src.hive_bench.cli.generate_post -p
+python -m src.hive_bench.cli.generate_post -p -a nectarflower
 
 # Exit with the status code of the post generation script
 exit $?

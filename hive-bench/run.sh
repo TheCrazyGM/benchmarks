@@ -15,7 +15,7 @@ if [ -f ".env" ]; then
 fi
 
 # Run the benchmark
-python -m src.hive_bench.cli.bench_runner -u -o hive_benchmark_results.json
+python -m src.hive_bench.cli.bench_runner -u -o hive_benchmark_results.json -a nectarflower
 
 # Exit with the status code of the benchmark
 exit $?
