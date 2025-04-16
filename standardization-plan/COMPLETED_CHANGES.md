@@ -77,4 +77,3 @@ Some areas that could be further standardized:
 4. **Code Style**: Apply a common code style guide across both projects with automated formatting
 
 This standardization makes it easier to maintain both projects and provides a consistent experience for users of both tools.
-

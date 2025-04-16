@@ -59,4 +59,3 @@ The recommended approach is to keep the core differences that reflect the unique
 By standardizing these two projects while preserving their unique blockchain-specific aspects, you'll create a more maintainable codebase and provide a more consistent experience for users. The standardization plan provides templates and examples to guide this process.
 
 The most important change is adding the missing functionality to `engine-bench` to match `hive-bench`, followed by standardizing shell scripts and CLI interfaces.
-
