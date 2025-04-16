@@ -277,32 +277,72 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     failing_nodes = benchmark_data.get("failing_nodes", {})
     nodes = benchmark_data.get("nodes", [])
 
-    # Prepare metadata for json_metadata
-    metadata = {
-        "benchmark": {
-            "timestamp": params.get("timestamp", ""),
-            "node_count": len(nodes),
-            "failing_count": len(failing_nodes),
-            "nectar_engine_SSCnodeVersion": params.get("nectar_engine_SSCnodeVersion", ""),
-            "script_SSCnodeVersion": params.get("script_SSCnodeVersion", ""),
-        }
-    }
-
-    # Add top nodes for each test type to metadata
-    for test_type in ["token", "contract", "account_history", "config", "latency"]:
-        # Sort nodes by rank for this test type
-        sorted_nodes = sorted(
-            [n for n in report if n[test_type]["ok"]],
-            key=lambda x: x[test_type]["rank"],
-        )
-
-        # Add top 3 nodes to metadata
-        metadata["benchmark"][f"top_{test_type}"] = [
-            {"url": node["node"], "rank": node[test_type]["rank"]} for node in sorted_nodes[:3]
-        ]
-
     # Create markdown content list
     markdown = []
+
+    # Header
+    markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
+    current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    markdown.append(f"{current_time} (UTC)")
+    markdown.append(
+        "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
+    )
+    markdown.append(
+        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/nectarflower-bench).\n"
+    )
+
+    # Failing nodes section
+    markdown.append("## List of failing nodes\n")
+    markdown.append(
+        "This table includes a list of all nodes which were not able to answer to a `getStatus` API call within the specified timeout.\n"
+    )
+
+    markdown.append("|node | error |")
+    markdown.append("| --- | --- |")
+
+    for node, error in failing_nodes.items():
+        # Truncate error message if too long
+        error_msg = error if len(error) < 100 else error[:97] + "..."
+        markdown.append(f"| <{node}> | {error_msg} |")
+
+    markdown.append("\n")
+
+    # Working nodes section - config time
+    markdown.append("## List of working nodes (At least once)\n")
+    markdown.append(
+        "This table includes all nodes which were able to answer a `getStatus` call within the timeout. The achieved mean duration values are shown. The returned SSCnodeVersion is also shown.\n"
+    )
+
+    markdown.append("|node |  mean time [s] | SSCnodeVersion  |")
+    markdown.append("| --- | --- | ---  |")
+
+    # Sort nodes by config time (ascending)
+    config_sorted_nodes = sorted(
+        [node for node in report if node.get("config", {}).get("ok", False)],
+        key=lambda x: x["config"]["access_time"],
+    )
+
+    for node_data in config_sorted_nodes:
+        node = node_data["node"]
+        SSCnodeVersion = node_data.get("SSCnodeVersion", "unknown")
+        config_time = format_float(node_data["config"]["access_time"])
+        markdown.append(f"| <{node}> | {config_time} | {SSCnodeVersion} |")
+
+    markdown.append("\n")
+
+    # Prepare concise metadata for json_metadata (after config_sorted_nodes is defined)
+    from engine_bench import __version__
+    metadata = {
+        "app": f"engine-bench/{__version__}",
+        "node_count": len(nodes),
+        "failing_nodes": len(failing_nodes),
+        "tags": ["hive-engine", "benchmark", "nodes", "performance", "api"],
+        "timestamp": params.get("timestamp", ""),
+        "top_nodes": [
+            {"url": node_data["node"], "rank": node_data["config"]["rank"]}
+            for node_data in config_sorted_nodes[:3]
+        ]
+    }
 
     # Header
     markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")

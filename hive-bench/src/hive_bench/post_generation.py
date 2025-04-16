@@ -514,6 +514,20 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
     markdown.append("\n")
 
+    # Prepare concise metadata for json_metadata (after config_sorted_nodes is defined)
+    from hive_bench import __version__
+    metadata = {
+        "app": f"hive-bench/{__version__}",
+        "node_count": len(report),
+        "failing_nodes": len(failing_nodes),
+        "tags": ["hive", "benchmark", "nodes", "performance", "api"],
+        "timestamp": timestamp,
+        "top_nodes": [
+            {"url": node_data["node"], "rank": node_data["config"]["rank"]}
+            for node_data in config_sorted_nodes[:3]
+        ]
+    }
+
     # Node Uptime Statistics (if historical data available)
     if historical_data and historical_data.get("uptime"):
         markdown.append("## Node Uptime Statistics (7-day period)\n")
