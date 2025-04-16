@@ -260,7 +260,7 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
 
     from nectar import __version__ as hive_nectar_version
 
-    from bench import __version__
+    from hive_bench import __version__
 
     # Initialize the database if it doesn't exist
     if not os.path.exists(db_path):
