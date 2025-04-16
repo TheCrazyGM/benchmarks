@@ -82,6 +82,7 @@ def get_status_node(node, num_retries=3, num_retries_call=3, timeout=30, how_man
     result["total_duration"] = time.time() - start_time
     return result
 
+
 # For backward compatibility, you may keep the old name as an alias for now:
 get_config_node = get_status_node
 

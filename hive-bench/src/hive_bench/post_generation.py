@@ -56,7 +56,7 @@ def get_historical_data(db_path, days=7):
     node_uptime = {}
     cursor.execute(
         """
-        SELECT n.url as url, 
+        SELECT n.url as url,
             COUNT(CASE WHEN ns.is_working = 1 THEN 1 END) as up_count,
             COUNT(*) as total_count
         FROM nodes n
@@ -121,7 +121,7 @@ def get_historical_data(db_path, days=7):
     # Add failing nodes to the trends data
     cursor.execute(
         """
-        SELECT DISTINCT n.url as url 
+        SELECT DISTINCT n.url as url
         FROM nodes n
         JOIN node_status ns ON n.node_id = ns.node_id
         JOIN benchmark_runs br ON ns.run_id = br.run_id
@@ -274,7 +274,7 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
 
         # Get the latest benchmark run
         cursor.execute(
-            """SELECT run_id, timestamp, test_parameters FROM benchmark_runs 
+            """SELECT run_id, timestamp, test_parameters FROM benchmark_runs
                ORDER BY timestamp DESC LIMIT 1"""
         )
         latest_run = cursor.fetchone()
@@ -286,16 +286,14 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
         run_id = latest_run["run_id"]
         timestamp = latest_run["timestamp"]
         test_parameters = (
-            json.loads(latest_run["test_parameters"])
-            if latest_run["test_parameters"]
-            else {}
+            json.loads(latest_run["test_parameters"]) if latest_run["test_parameters"] else {}
         )
 
         # Get all nodes for this run
         cursor.execute(
-            """SELECT n.node_id, n.url, ns.is_working, ns.error_message, ns.is_hive 
-               FROM node_status ns 
-               JOIN nodes n ON ns.node_id = n.node_id 
+            """SELECT n.node_id, n.url, ns.is_working, ns.error_message, ns.is_hive
+               FROM node_status ns
+               JOIN nodes n ON ns.node_id = n.node_id
                WHERE ns.run_id = ?""",
             (run_id,),
         )
@@ -339,11 +337,11 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
 
         # Get test results for all working nodes
         cursor.execute(
-            """SELECT tr.result_id, tr.node_id, tr.test_type, tr.is_ok, tr.rank, 
+            """SELECT tr.result_id, tr.node_id, tr.test_type, tr.is_ok, tr.rank,
                       tr.time, tr.count, tr.access_time, tr.head_delay, tr.diff_head_irreversible,
-                      n.url 
-               FROM test_results tr 
-               JOIN nodes n ON tr.node_id = n.node_id 
+                      n.url
+               FROM test_results tr
+               JOIN nodes n ON tr.node_id = n.node_id
                WHERE tr.run_id = ?""",
             (run_id,),
         )
@@ -360,7 +358,7 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
             if test_type == "config":
                 # Get version from the database
                 cursor.execute(
-                    """SELECT version FROM node_status 
+                    """SELECT version FROM node_status
                        WHERE node_id = ? AND run_id = ? LIMIT 1""",
                     (result["node_id"], run_id),
                 )
@@ -383,9 +381,7 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
                 elif test_type == "apicall":
                     node_data[node_url]["apicall"]["ok"] = True
                     node_data[node_url]["apicall"]["time"] = result["time"]
-                    node_data[node_url]["apicall"]["access_time"] = result[
-                        "access_time"
-                    ]
+                    node_data[node_url]["apicall"]["access_time"] = result["access_time"]
                     node_data[node_url]["apicall"]["rank"] = result["rank"]
                 elif test_type == "config":
                     node_data[node_url]["config"]["ok"] = True
@@ -394,12 +390,10 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
                     node_data[node_url]["config"]["rank"] = result["rank"]
                 elif test_type == "block_diff":
                     node_data[node_url]["block_diff"]["ok"] = True
-                    node_data[node_url]["block_diff"]["head_delay"] = result[
-                        "head_delay"
+                    node_data[node_url]["block_diff"]["head_delay"] = result["head_delay"]
+                    node_data[node_url]["block_diff"]["diff_head_irreversible"] = result[
+                        "diff_head_irreversible"
                     ]
-                    node_data[node_url]["block_diff"]["diff_head_irreversible"] = (
-                        result["diff_head_irreversible"]
-                    )
                     node_data[node_url]["block_diff"]["time"] = result["time"]
                     node_data[node_url]["block_diff"]["rank"] = result["rank"]
 
@@ -471,12 +465,12 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Header
     markdown.append(f"# Full API Node Update - ({formatted_date})\n")
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    markdown.append(f"{current_time} - {current_time} (UTC)")
+    markdown.append(f"{current_time} (UTC)")
     markdown.append(
         "@nectarflower provides daily updates about the state of all available full API node server for HIVE."
     )
     markdown.append(
-        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/bench).\n"
+        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/nectaflower-bench).\n"
     )
 
     # Failing nodes section
@@ -523,9 +517,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Node Uptime Statistics (if historical data available)
     if historical_data and historical_data.get("uptime"):
         markdown.append("## Node Uptime Statistics (7-day period)\n")
-        markdown.append(
-            "This table shows how reliable nodes have been over the past week.\n"
-        )
+        markdown.append("This table shows how reliable nodes have been over the past week.\n")
 
         markdown.append("| node | uptime % | total checks |")
         markdown.append("| --- | --- | --- |")
@@ -635,13 +627,9 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         node = node_data["node"]
         # Add null checks before converting to integers
         head_delay = node_data["block_diff"].get("head_delay", 0)
-        diff_head_irreversible = node_data["block_diff"].get(
-            "diff_head_irreversible", 0
-        )
+        diff_head_irreversible = node_data["block_diff"].get("diff_head_irreversible", 0)
         blocks_behind = int(head_delay) if head_delay is not None else 0
-        diff_head_irr = (
-            int(diff_head_irreversible) if diff_head_irreversible is not None else 0
-        )
+        diff_head_irr = int(diff_head_irreversible) if diff_head_irreversible is not None else 0
         markdown.append(f"| <{node}> | {blocks_behind} | {diff_head_irr} |")
 
     markdown.append("\n")
@@ -650,9 +638,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     if historical_data and historical_data.get("trends"):
         period_text = "today" if days <= 1 else f"{days}-day period"
         markdown.append(f"## Node Performance Trends ({period_text})\n")
-        markdown.append(
-            "This table shows how node performance has changed over the past week.\n"
-        )
+        markdown.append("This table shows how node performance has changed over the past week.\n")
 
         markdown.append(
             "| node | block trend | history trend | API call trend | config trend | block diff trend |"
@@ -671,9 +657,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
                         and "trends" in historical_data
                         and node_url in historical_data["trends"]
                         and test_type in historical_data["trends"][node_url]
-                        and isinstance(
-                            historical_data["trends"][node_url][test_type], dict
-                        )
+                        and isinstance(historical_data["trends"][node_url][test_type], dict)
                         and "trend" in historical_data["trends"][node_url][test_type]
                     ):
                         return historical_data["trends"][node_url][test_type]["trend"]
@@ -684,9 +668,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
                         and "trends" in historical_data
                         and node_url in historical_data["trends"]
                         and test_type in historical_data["trends"][node_url]
-                        and isinstance(
-                            historical_data["trends"][node_url][test_type], list
-                        )
+                        and isinstance(historical_data["trends"][node_url][test_type], list)
                     ):
                         ranks_data = historical_data["trends"][node_url][test_type]
                         if not ranks_data or len(ranks_data) < 2:
@@ -730,23 +712,15 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
                     # Otherwise, we don't have trend data for this node/test_type
                     return "n/a"
                 except Exception as e:
-                    logging.warning(
-                        f"Error calculating trend for {node_url}, {test_type}: {e}"
-                    )
+                    logging.warning(f"Error calculating trend for {node_url}, {test_type}: {e}")
                     return "n/a"
 
             # Get trend indicators for each test type
             block_trend = calculate_trend_from_data(node_url, "block", historical_data)
-            history_trend = calculate_trend_from_data(
-                node_url, "history", historical_data
-            )
+            history_trend = calculate_trend_from_data(node_url, "history", historical_data)
             api_trend = calculate_trend_from_data(node_url, "apicall", historical_data)
-            config_trend = calculate_trend_from_data(
-                node_url, "config", historical_data
-            )
-            block_diff_trend = calculate_trend_from_data(
-                node_url, "block_diff", historical_data
-            )
+            config_trend = calculate_trend_from_data(node_url, "config", historical_data)
+            block_diff_trend = calculate_trend_from_data(node_url, "block_diff", historical_data)
 
             # Create emoji indicators
             def get_trend_emoji(trend):
@@ -786,9 +760,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
         # Sort nodes by average consistency across all tests
         def avg_consistency(node_data):
-            values = [
-                value for value in node_data.values() if isinstance(value, (int, float))
-            ]
+            values = [value for value in node_data.values() if isinstance(value, (int, float))]
 
             # If all values are 0, this is likely a failing node - place it at the end
             if all(v == 0 for v in values) and values:
@@ -842,9 +814,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         # Collect ranks from each test
         block_rank = node_data.get("block", {}).get("rank", -1)
         if block_rank > 0:
-            score += max(
-                10 - block_rank, 0
-            )  # Higher score for better rank (lower number)
+            score += max(10 - block_rank, 0)  # Higher score for better rank (lower number)
             ranks.append(block_rank)
 
         history_rank = node_data.get("history", {}).get("rank", -1)
@@ -882,9 +852,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         }
 
     # Sort nodes by score (descending)
-    sorted_scores = sorted(
-        node_scores.items(), key=lambda x: x[1]["score"], reverse=True
-    )
+    sorted_scores = sorted(node_scores.items(), key=lambda x: x[1]["score"], reverse=True)
 
     for node, score_data in sorted_scores:
         markdown.append(
@@ -914,9 +882,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     return markdown_content, metadata
 
 
-def generate_post(
-    output_file="benchmark_post.md", db_path="benchmark_history.db", days=7
-):
+def generate_post(output_file="benchmark_post.md", db_path="benchmark_history.db", days=7):
     """Generate a markdown post from benchmark data.
 
     This function orchestrates the entire post generation process. It retrieves the

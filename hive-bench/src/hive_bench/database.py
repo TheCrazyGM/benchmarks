@@ -150,9 +150,7 @@ def get_or_create_node_id(cursor, node_url, timestamp):
     if node_record:
         # Update last_seen timestamp for existing node
         node_id = node_record[0]
-        cursor.execute(
-            "UPDATE nodes SET last_seen = ? WHERE node_id = ?", (timestamp, node_id)
-        )
+        cursor.execute("UPDATE nodes SET last_seen = ? WHERE node_id = ?", (timestamp, node_id))
         return node_id
     else:
         # Create new node record
@@ -213,9 +211,9 @@ def store_benchmark_data_in_db(report_data, db_path="hive_benchmark_history.db")
         # Store benchmark run metadata
         cursor.execute(
             """
-            INSERT INTO benchmark_runs 
-            (timestamp, start_time, end_time, hive_nectar_version, script_version, 
-             num_retries, num_retries_call, timeout, threading, test_parameters) 
+            INSERT INTO benchmark_runs
+            (timestamp, start_time, end_time, hive_nectar_version, script_version,
+             num_retries, num_retries_call, timeout, threading, test_parameters)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
@@ -241,8 +239,8 @@ def store_benchmark_data_in_db(report_data, db_path="hive_benchmark_history.db")
             # Store node status
             cursor.execute(
                 """
-                INSERT INTO node_status 
-                (run_id, node_id, is_working, version, is_hive) 
+                INSERT INTO node_status
+                (run_id, node_id, is_working, version, is_hive)
                 VALUES (?, ?, ?, ?, ?)
                 """,
                 (
@@ -264,8 +262,8 @@ def store_benchmark_data_in_db(report_data, db_path="hive_benchmark_history.db")
                 if test_name == "block" or test_name == "history":
                     cursor.execute(
                         """
-                        INSERT INTO test_results 
-                        (run_id, node_id, test_type, is_ok, rank, time, count) 
+                        INSERT INTO test_results
+                        (run_id, node_id, test_type, is_ok, rank, time, count)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
@@ -281,8 +279,8 @@ def store_benchmark_data_in_db(report_data, db_path="hive_benchmark_history.db")
                 elif test_name == "apicall" or test_name == "config":
                     cursor.execute(
                         """
-                        INSERT INTO test_results 
-                        (run_id, node_id, test_type, is_ok, rank, time, access_time) 
+                        INSERT INTO test_results
+                        (run_id, node_id, test_type, is_ok, rank, time, access_time)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
@@ -299,8 +297,8 @@ def store_benchmark_data_in_db(report_data, db_path="hive_benchmark_history.db")
                     # Store head_delay
                     cursor.execute(
                         """
-                        INSERT INTO test_results 
-                        (run_id, node_id, test_type, is_ok, rank, time, head_delay) 
+                        INSERT INTO test_results
+                        (run_id, node_id, test_type, is_ok, rank, time, head_delay)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
@@ -316,8 +314,8 @@ def store_benchmark_data_in_db(report_data, db_path="hive_benchmark_history.db")
                     # Store diff_head_irreversible
                     cursor.execute(
                         """
-                        INSERT INTO test_results 
-                        (run_id, node_id, test_type, is_ok, rank, time, diff_head_irreversible) 
+                        INSERT INTO test_results
+                        (run_id, node_id, test_type, is_ok, rank, time, diff_head_irreversible)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
@@ -338,8 +336,8 @@ def store_benchmark_data_in_db(report_data, db_path="hive_benchmark_history.db")
             # Store node status
             cursor.execute(
                 """
-                INSERT INTO node_status 
-                (run_id, node_id, is_working, error_message, version, is_hive) 
+                INSERT INTO node_status
+                (run_id, node_id, is_working, error_message, version, is_hive)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (

@@ -44,8 +44,6 @@ def load_post_content(markdown_path):
         return None
 
 
-
-
 def main():
     """Main entry point for generating benchmark posts and optionally publishing to Hive."""
     # Set up logging
@@ -129,7 +127,7 @@ def main():
     if args.publish:
         # Get account and key from environment if not provided as args
         account = args.account or os.environ.get("HIVE_ACCOUNT")
-        key = args.key or os.environ.get("HIVE_POSTING_KEY")
+        key = args.key or os.environ.get("POSTING_WIF")
 
         if not account:
             logging.error(
@@ -139,7 +137,7 @@ def main():
 
         if not key and not args.dry_run:
             logging.error(
-                "No Hive posting key specified. Use --key or set HIVE_POSTING_KEY environment variable."
+                "No Hive posting key specified. Use --key or set POSTING_WIF set  environment variable."
             )
             return
 
@@ -154,12 +152,10 @@ def main():
         date_str = datetime.now().strftime("%Y-%m-%d")
         title = f"Hive-Engine Node Benchmark Report - {date_str}"
         metadata["title"] = title
-        
-        # Generate permlink if not provided
-        permlink = args.permlink
-        if not permlink:
-            permlink = f"hive-engine-benchmark-{date_str.lower().replace('-', '')}"
-            
+
+        # Always generate permlink automatically
+        permlink = f"hive-engine-benchmark-{date_str.lower().replace('-', '')}"
+
         # Get default tags
         tags = ["hive-engine", "benchmark", "nodes", "performance", "api"]
 
@@ -169,24 +165,19 @@ def main():
             # Set DRY_RUN environment variable for the blockchain module
             if args.dry_run:
                 os.environ["DRY_RUN"] = "True"
-                
+
             # Set HIVE_ACCOUNT and POSTING_WIF environment variables
             os.environ["HIVE_ACCOUNT"] = account
             if key:
                 os.environ["POSTING_WIF"] = key
-                
+
             # Post to Hive using the blockchain module
-            result = post_to_hive(
-                content=content,
-                metadata=metadata,
-                permlink=permlink,
-                tags=tags
-            )
-            
+            post_to_hive(content=content, metadata=metadata, permlink=permlink, tags=tags)
+
             # Print success message
             print("\nSuccessfully posted to Hive!")
             print(f"View your post at: https://peakd.com/@{account}/{permlink}")
-            
+
         except Exception as e:
             logging.error(f"Failed to post to Hive: {e}")
             print(f"\nFailed to post to Hive: {e}")

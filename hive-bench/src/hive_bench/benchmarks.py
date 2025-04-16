@@ -78,9 +78,7 @@ class Benchmarks:
                     node = future_to_node[future]
                     try:
                         result = future.result()
-                        logging.info(
-                            f"Benchmark completed for node {node}: {result['successful']}"
-                        )
+                        logging.info(f"Benchmark completed for node {node}: {result['successful']}")
                         results.append(result)
                     except Exception as e:
                         logging.error(f"Error benchmarking node {node}: {str(e)}")
@@ -125,9 +123,7 @@ class Benchmarks:
                     num_retries_call=self.num_retries_call,
                     timeout=self.timeout,
                 )
-                logging.info(
-                    f"Benchmark completed for node {node}: {result['successful']}"
-                )
+                logging.info(f"Benchmark completed for node {node}: {result['successful']}")
                 results.append(result)
             except Exception as e:
                 logging.error(f"Error benchmarking node {node}: {str(e)}")
@@ -176,9 +172,7 @@ class Benchmarks:
         if threading:
             return self._run_benchmark_threaded(nodes, config_wrapper, how_many_seconds)
         else:
-            return self._run_benchmark_sequential(
-                nodes, config_wrapper, how_many_seconds
-            )
+            return self._run_benchmark_sequential(nodes, config_wrapper, how_many_seconds)
 
     def run_block_benchmark(self, nodes, how_many_seconds, threading=True):
         """Run block retrieval benchmark tests on multiple nodes.
@@ -215,9 +209,7 @@ class Benchmarks:
         if threading:
             return self._run_benchmark_threaded(nodes, block_wrapper, how_many_seconds)
         else:
-            return self._run_benchmark_sequential(
-                nodes, block_wrapper, how_many_seconds
-            )
+            return self._run_benchmark_sequential(nodes, block_wrapper, how_many_seconds)
 
     def run_hist_benchmark(
         self, nodes, how_many_seconds, threading=True, account_name="thecrazygm"

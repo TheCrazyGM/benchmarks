@@ -12,9 +12,7 @@ from nectar.utils import resolve_authorpermvoter
 from hive_bench.utils import format_float, quit_thread
 
 
-def get_config_node(
-    node, num_retries=10, num_retries_call=10, timeout=60, how_many_seconds=30
-):
+def get_config_node(node, num_retries=10, num_retries_call=10, timeout=60, how_many_seconds=30):
     """Retrieve configuration information from a Hive node.
 
     This function connects to a Hive node and retrieves its configuration, version,
@@ -192,9 +190,7 @@ def benchmark_node_history(
         raise
 
 
-def benchmark_calls(
-    node, authorpermvoter, num_retries=10, num_retries_call=10, timeout=60
-):
+def benchmark_calls(node, authorpermvoter, num_retries=10, num_retries_call=10, timeout=60):
     """Benchmark a node's API call performance for retrieving post data.
 
     This function measures the time it takes to retrieve a post from a node. It tries to
@@ -230,9 +226,7 @@ def benchmark_calls(
 
         # Parse parameters safely
         try:
-            comment_author, comment_permlink, _ = resolve_authorpermvoter(
-                authorpermvoter
-            )
+            comment_author, comment_permlink, _ = resolve_authorpermvoter(authorpermvoter)
         except Exception:
             # If we can't resolve the authorpermvoter, use a fallback approach
             parts = authorpermvoter.split("|")[0].split("/")
@@ -327,9 +321,9 @@ def benchmark_block_diff(node, num_retries=10, num_retries_call=10, timeout=60):
 
         # Convert head block time to datetime
         if isinstance(head_block_time, str):
-            head_block_time = datetime.strptime(
-                head_block_time, "%Y-%m-%dT%H:%M:%S"
-            ).replace(tzinfo=timezone.utc)
+            head_block_time = datetime.strptime(head_block_time, "%Y-%m-%dT%H:%M:%S").replace(
+                tzinfo=timezone.utc
+            )
 
         # Calculate head delay (difference between current time and head block time)
         current_time = datetime.now(timezone.utc)

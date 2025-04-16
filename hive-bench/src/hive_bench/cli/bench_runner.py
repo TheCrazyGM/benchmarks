@@ -6,6 +6,7 @@ import json
 import logging
 import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 from hive_bench.blockchain import update_json_metadata
@@ -74,18 +75,14 @@ def parse_args():
         type=str,
         help="Existing report file to use instead of running benchmarks",
     )
-    parser.add_argument(
-        "--no-db", action="store_true", help="Do not store results in database"
-    )
+    parser.add_argument("--no-db", action="store_true", help="Do not store results in database")
     parser.add_argument(
         "--update-metadata",
         "-u",
         action="store_true",
         help="Update account JSON metadata with benchmark results",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     return parser.parse_args()
 
 
@@ -98,9 +95,7 @@ def main():
 
     # Configure logging
     log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+    logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
 
     report = None
     output_path = None
@@ -181,29 +176,34 @@ def main():
         # Create a dictionary of nodes with their scores and tests completed
         node_scores = {}
         node_tests_completed = {}
-        
+
         # Process the report data
         for node_data in report["report"]:
             if isinstance(node_data, dict) and "node" in node_data:
                 node_url = node_data["node"]
-                
+
                 # Calculate score (lower is better, like in engine-bench)
                 score = 0
                 tests_completed = 0
-                
+
                 for test in ["block", "history", "apicall", "config", "block_diff"]:
                     test_data = node_data.get(test, {})
                     if test_data.get("ok", False) and test_data.get("rank", -1) > 0:
                         tests_completed += 1
                         # Convert score to be in line with engine-bench (lower is better)
                         # Normalize by max_rank and convert to 0-100 scale
-                        max_rank = max([
-                            d.get(test, {}).get("rank", 0) 
-                            for d in report["report"] 
-                            if isinstance(d, dict) and d.get(test, {}).get("ok", False)
-                        ] or [1])
-                        score += (test_data.get("rank", max_rank) / max_rank) * 20  # 5 tests * 20 = 100 max
-                
+                        max_rank = max(
+                            [
+                                d.get(test, {}).get("rank", 0)
+                                for d in report["report"]
+                                if isinstance(d, dict) and d.get(test, {}).get("ok", False)
+                            ]
+                            or [1]
+                        )
+                        score += (
+                            test_data.get("rank", max_rank) / max_rank
+                        ) * 20  # 5 tests * 20 = 100 max
+
                 # Store the final score
                 if tests_completed > 0:
                     node_scores[node_url] = round(score / tests_completed, 2)
@@ -211,12 +211,12 @@ def main():
                 else:
                     node_scores[node_url] = 999  # Default high score
                     node_tests_completed[node_url] = 0
-        
+
         # Print top nodes with scores
         print("\nTop performing nodes (lower score is better):")
         # Sort by score (ascending - lower is better)
         sorted_nodes = sorted(node_scores.items(), key=lambda x: x[1])[:5]
-        
+
         if sorted_nodes:
             for i, (node, score) in enumerate(sorted_nodes):
                 tests = node_tests_completed.get(node, 0)

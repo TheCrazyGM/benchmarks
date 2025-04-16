@@ -87,7 +87,9 @@ def get_hive_connection(custom_nodes: Optional[List[str]] = None) -> Hive:
         raise RPCConnectionRequired(f"Failed to connect to Hive blockchain: {e}")
 
 
-def update_json_metadata(data: Dict[str, Any], account: Optional[str] = None) -> Union[Dict[str, Any], str]:
+def update_json_metadata(
+    data: Dict[str, Any], account: Optional[str] = None
+) -> Union[Dict[str, Any], str]:
     """Update account JSON metadata with benchmark results.
 
     This function updates the account JSON metadata with the provided benchmark data.
@@ -136,9 +138,7 @@ def update_json_metadata(data: Dict[str, Any], account: Optional[str] = None) ->
         # Update account metadata
         logger.info(f"Updating account metadata for {HIVE_ACCOUNT}")
         if DRY_RUN:
-            logger.warning(
-                "DRY_RUN mode enabled, no actual transaction will be broadcast"
-            )
+            logger.warning("DRY_RUN mode enabled, no actual transaction will be broadcast")
 
         tx = acc.update_account_metadata(data, account=HIVE_ACCOUNT)
         logger.info(f"Successfully updated account metadata: {tx}")
@@ -254,9 +254,7 @@ def post_to_hive(
         # Post to Hive
         logger.info(f"Creating post on Hive with title: {metadata['title']}")
         if DRY_RUN:
-            logger.warning(
-                "DRY_RUN mode enabled, no actual transaction will be broadcast"
-            )
+            logger.warning("DRY_RUN mode enabled, no actual transaction will be broadcast")
             return {"status": "dry_run", "title": metadata["title"]}
 
         tx = hive.post(

@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+
 from dotenv import load_dotenv
 
 from hive_bench.blockchain import post_to_hive
@@ -18,9 +19,7 @@ def main():
     load_dotenv()
 
     # Set up argument parsing
-    parser = argparse.ArgumentParser(
-        description="Generate a markdown post from benchmark results"
-    )
+    parser = argparse.ArgumentParser(description="Generate a markdown post from benchmark results")
     parser.add_argument(
         "--output",
         "-o",
@@ -46,9 +45,7 @@ def main():
         default=7,
         help="Number of days of historical data to include (default: 7)",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     parser.add_argument(
         "--post", "-p", action="store_true", help="Post the generated content to Hive"
     )
@@ -67,9 +64,7 @@ def main():
 
     # Configure logging
     log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+    logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
 
     # Check if database exists
     if not os.path.exists(args.db):
@@ -79,23 +74,21 @@ def main():
 
     # Generate the post using our modular code
     try:
-        content, metadata = generate_post(
-            output_file=args.output, db_path=args.db, days=args.days
-        )
+        content, metadata = generate_post(output_file=args.output, db_path=args.db, days=args.days)
         logging.info(f"Generated post content and saved to {args.output}")
-        
+
         # Save metadata to JSON file
         import json
         import os
         from pathlib import Path
-        
+
         # Get the absolute path to the project root directory if needed
         json_path = args.json
         if not os.path.isabs(json_path):
             current_file = Path(__file__).resolve()
             project_root = current_file.parent.parent.parent.parent
             json_path = os.path.join(project_root, json_path)
-            
+
         with open(json_path, "w") as f:
             json.dump(metadata, f, indent=2)
         logging.info(f"Metadata saved to {json_path}")
@@ -112,9 +105,7 @@ def main():
             if not permlink and "title" in metadata:
                 # Create a permlink from the title
                 date_str = datetime.now().strftime("%Y%m%d")
-                title_slug = (
-                    metadata["title"].lower().replace(" ", "-").replace("/", "-")
-                )
+                title_slug = metadata["title"].lower().replace(" ", "-").replace("/", "-")
                 # Remove excessive -
                 title_slug = title_slug.replace("---", "-")
                 # Remove special characters

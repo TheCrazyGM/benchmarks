@@ -15,7 +15,7 @@ if [ -f ".env" ]; then
 fi
 
 # Run the benchmark
-python -m src.engine_bench.cli.bench_runner -u -o engine_benchmark_results.json
+python -m src.engine_bench.cli.bench_runner -u -o engine_benchmark_results.json -a flowerengine
 
 # Exit with the status code of the benchmark
 exit $?

@@ -9,7 +9,6 @@ benchmark reports.
 import logging
 import os
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -90,7 +89,9 @@ def get_hive_connection(custom_nodes: Optional[List[str]] = None) -> Hive:
         raise RPCConnectionRequired(f"Failed to connect to Hive blockchain: {e}")
 
 
-def update_json_metadata(data: Dict[str, Any], account: Optional[str] = None) -> Union[Dict[str, Any], str]:
+def update_json_metadata(
+    data: Dict[str, Any], account: Optional[str] = None
+) -> Union[Dict[str, Any], str]:
     """Update account JSON metadata with benchmark results.
 
     This function updates the account JSON metadata with the provided benchmark data.

@@ -307,12 +307,12 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Header
     markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    markdown.append(f"{current_time} - {current_time} (UTC)")
+    markdown.append(f"{current_time} (UTC)")
     markdown.append(
         "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
     )
     markdown.append(
-        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/benchmarks).\n"
+        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/nectarflower-bench).\n"
     )
 
     # Failing nodes section
@@ -357,9 +357,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Node Uptime Statistics (if historical data available)
     if historical_data and historical_data.get("uptime"):
         markdown.append("## Node Uptime Statistics (7-day period)\n")
-        markdown.append(
-            "This table shows how reliable nodes have been over the past week.\n"
-        )
+        markdown.append("This table shows how reliable nodes have been over the past week.\n")
 
         markdown.append("| node | uptime % | total checks |")
         markdown.append("| --- | --- | --- |")
@@ -517,21 +515,32 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
                 # Handle both dict and list of dicts
                 if isinstance(trend_info, list):
                     for ti in trend_info:
-                        if isinstance(ti, dict) and ti.get("trend") in ("improving", "degrading") and abs(ti.get("change", 0)) >= 1:
-                            significant_trends.append({
+                        if (
+                            isinstance(ti, dict)
+                            and ti.get("trend") in ("improving", "degrading")
+                            and abs(ti.get("change", 0)) >= 1
+                        ):
+                            significant_trends.append(
+                                {
+                                    "node": node,
+                                    "test_type": test_type,
+                                    "trend": ti["trend"],
+                                    "change": ti["change"],
+                                }
+                            )
+                elif isinstance(trend_info, dict):
+                    if (
+                        trend_info.get("trend") in ("improving", "degrading")
+                        and abs(trend_info.get("change", 0)) >= 1
+                    ):
+                        significant_trends.append(
+                            {
                                 "node": node,
                                 "test_type": test_type,
-                                "trend": ti["trend"],
-                                "change": ti["change"]
-                            })
-                elif isinstance(trend_info, dict):
-                    if trend_info.get("trend") in ("improving", "degrading") and abs(trend_info.get("change", 0)) >= 1:
-                        significant_trends.append({
-                            "node": node,
-                            "test_type": test_type,
-                            "trend": trend_info["trend"],
-                            "change": trend_info["change"]
-                        })
+                                "trend": trend_info["trend"],
+                                "change": trend_info["change"],
+                            }
+                        )
 
         if significant_trends:
             # Sort by absolute change magnitude (descending)
@@ -579,9 +588,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
                 node_consistency_scores[node] = sum(valid_scores) / len(valid_scores)
 
         # Sort nodes by consistency score (ascending - lower is better)
-        sorted_nodes = sorted(
-            node_consistency_scores.items(), key=lambda x: x[1]
-        )
+        sorted_nodes = sorted(node_consistency_scores.items(), key=lambda x: x[1])
 
         markdown.append("| Node | Consistency Score (lower is better) |")
         markdown.append("| --- | --- |")

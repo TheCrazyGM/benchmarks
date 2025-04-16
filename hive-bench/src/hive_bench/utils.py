@@ -3,9 +3,7 @@
 import logging
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Initial nodes list for benchmarking
 INITIAL_NODES = [
@@ -102,9 +100,7 @@ def benchmark_executor(func, node, *args, **kwargs):
     # Add common fields if not present
     result.update(
         {
-            "successful": successful
-            if "successful" not in result
-            else result["successful"],
+            "successful": successful if "successful" not in result else result["successful"],
             "node": node,
             "error": error_msg,
             "total_duration": total_duration
