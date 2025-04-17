@@ -111,17 +111,14 @@ def main():
     print(f"  Post saved to: {args.output}")
     print(f"  Metadata saved to: {json_path}")
     print(f"  Included {args.days} days of historical data")
-    print(f"  Working nodes: {metadata['benchmark']['node_count']}")
-    print(f"  Failing nodes: {metadata['benchmark']['failing_count']}")
+    print(f"  Working nodes: {metadata.get('node_count', 'N/A')}")
+    print(f"  Failing nodes: {metadata.get('failing_nodes', 'N/A')}")
     print("\nTop nodes from benchmark:")
-    for test_type in ["token", "contract", "account_history", "config", "latency"]:
-        if (
-            f"top_{test_type}" in metadata["benchmark"]
-            and metadata["benchmark"][f"top_{test_type}"]
-        ):
-            print(
-                f"  Top node for {test_type}: {metadata['benchmark'][f'top_{test_type}'][0]['url']}"
-            )
+    if 'top_nodes' in metadata and metadata['top_nodes']:
+        for i, node in enumerate(metadata['top_nodes'], 1):
+            print(f"    {i}. {node['url']} (rank: {node.get('rank', 'N/A')})")
+    else:
+        print("    No top nodes available.")
 
     # Publish to Hive if requested
     if args.publish:
