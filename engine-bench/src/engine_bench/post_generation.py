@@ -248,6 +248,8 @@ def get_latest_benchmark_data(db_path="engine_benchmark_history.db"):
 def generate_markdown(benchmark_data, output_file=None, historical_data=None, days=7):
     """Generate a markdown post from benchmark data.
 
+    Note: Posts are published on the nectarflower account, but the source benchmark data and post metadata are from the flowerengine account.
+
     This function creates a formatted markdown document from benchmark results,
     including sections for failing nodes, working nodes, node statistics, and
     comparisons. It can incorporate historical data for trend analysis.
@@ -284,6 +286,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     markdown.append(f"{current_time} (UTC)")
+    markdown.append("**Note:** This post is published from the @nectarflower account, but the benchmark data and nodee metadata are from the @flowerengine account.")
     markdown.append(
         "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
     )
@@ -348,11 +351,12 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     markdown.append(f"{current_time} (UTC)")
+    markdown.append("**Note:** This post is published from the @nectarflower account, but the benchmark data and node metadata are from the @flowerengine account.")
     markdown.append(
         "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
     )
     markdown.append(
-        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/nectarflower-bench).\n"
+        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/benchmarks).\n"
     )
 
     # Failing nodes section
@@ -646,7 +650,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     )
     markdown.append("")
     markdown.append(
-        "The benchmark data is also available in JSON format in the account's `json_metadata` for automated processing."
+        "The benchmark data is also available in JSON format in the @flowerengine account's `json_metadata` for automated processing."
     )
     markdown.append("")
     markdown.append("---")
@@ -666,6 +670,8 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
 def generate_post(output_file, db_path="engine_benchmark_history.db", days=7):
     """Generate a markdown post from benchmark data.
+
+    Note: Even though the post is made from the nectarflower account, the underlying benchmark data and metadata originate from the flowerengine account.
 
     This function orchestrates the entire post generation process. It retrieves the
     latest benchmark data from the database, collects historical data for trend analysis,

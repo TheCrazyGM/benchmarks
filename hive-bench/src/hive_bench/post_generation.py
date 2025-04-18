@@ -470,7 +470,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         "@nectarflower provides daily updates about the state of all available full API node server for HIVE."
     )
     markdown.append(
-        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/nectaflower-bench).\n"
+        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/benchmarks).\n"
     )
 
     # Failing nodes section
