@@ -286,7 +286,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     markdown.append(f"{current_time} (UTC)")
-    markdown.append("**Note:** This post is published from the @nectarflower account, but the benchmark data and nodee metadata are from the @flowerengine account.")
+    markdown.append("**Note:** This post is published from the @nectarflower account, but the benchmark data and node metadata are from the @flowerengine account.")
     markdown.append(
         "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
     )
@@ -346,57 +346,6 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
             for node_data in config_sorted_nodes[:3]
         ]
     }
-
-    # Header
-    markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
-    current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    markdown.append(f"{current_time} (UTC)")
-    markdown.append("**Note:** This post is published from the @nectarflower account, but the benchmark data and node metadata are from the @flowerengine account.")
-    markdown.append(
-        "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
-    )
-    markdown.append(
-        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/benchmarks).\n"
-    )
-
-    # Failing nodes section
-    markdown.append("## List of failing nodes\n")
-    markdown.append(
-        "This table includes a list of all nodes which were not able to answer to a `getStatus` API call within the specified timeout.\n"
-    )
-
-    markdown.append("|node | error |")
-    markdown.append("| --- | --- |")
-
-    for node, error in failing_nodes.items():
-        # Truncate error message if too long
-        error_msg = error if len(error) < 100 else error[:97] + "..."
-        markdown.append(f"| <{node}> | {error_msg} |")
-
-    markdown.append("\n")
-
-    # Working nodes section - config time
-    markdown.append("## List of working nodes (At least once)\n")
-    markdown.append(
-        "This table includes all nodes which were able to answer a `getStatus` call within the timeout. The achieved mean duration values are shown. The returned SSCnodeVersion is also shown.\n"
-    )
-
-    markdown.append("|node |  mean time [s] | SSCnodeVersion  |")
-    markdown.append("| --- | --- | ---  |")
-
-    # Sort nodes by config time (ascending)
-    config_sorted_nodes = sorted(
-        [node for node in report if node.get("config", {}).get("ok", False)],
-        key=lambda x: x["config"]["access_time"],
-    )
-
-    for node_data in config_sorted_nodes:
-        node = node_data["node"]
-        SSCnodeVersion = node_data.get("SSCnodeVersion", "unknown")
-        config_time = format_float(node_data["config"]["access_time"])
-        markdown.append(f"| <{node}> | {config_time} | {SSCnodeVersion} |")
-
-    markdown.append("\n")
 
     # Node Uptime Statistics (if historical data available)
     if historical_data and historical_data.get("uptime"):
