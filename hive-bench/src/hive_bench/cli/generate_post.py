@@ -79,7 +79,6 @@ def main():
 
         # Save metadata to JSON file
         import json
-        import os
         from pathlib import Path
 
         # Get the absolute path to the project root directory if needed
