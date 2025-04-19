@@ -21,42 +21,72 @@ def main():
     # Set up argument parsing
     parser = argparse.ArgumentParser(description="Generate a markdown post from benchmark results")
     parser.add_argument(
-        "--output",
         "-o",
+        "--output",
         default="hive_benchmark_post.md",
-        help="Output markdown file (default: hive_benchmark_post.md)",
+        help="Path to save the markdown post (default: hive_benchmark_post.md)",
     )
     parser.add_argument(
-        "--db",
         "-d",
+        "--db",
         default="hive_benchmark_history.db",
-        help="SQLite database file with historical data (default: hive_benchmark_history.db)",
+        help="Path to the SQLite database file (default: hive_benchmark_history.db)",
     )
     parser.add_argument(
-        "--json",
         "-j",
+        "--json",
         default="hive_benchmark_metadata.json",
         help="Path to save the post metadata JSON (default: hive_benchmark_metadata.json)",
     )
     parser.add_argument(
         "--days",
-        "-t",
         type=int,
         default=7,
         help="Number of days of historical data to include (default: 7)",
     )
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     parser.add_argument(
-        "--post", "-p", action="store_true", help="Post the generated content to Hive"
+        "-p",
+        "--publish",
+        action="store_true",
+        help="Publish the post to Hive",
+    )
+    parser.add_argument(
+        "-a",
+        "--author",
+        help="Hive account name to post from (or set HIVE_ACCOUNT env var)",
+    )
+    parser.add_argument(
+        "-k",
+        "--key",
+        help="Hive posting key for the account (or set POSTING_WIF env var)",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Don't actually post to Hive, just show what would be posted",
     )
     parser.add_argument(
         "--permlink",
         help="Custom permlink for the post (default: auto-generated from title)",
     )
-    parser.add_argument("--community", help="Community to post to (optional)")
+    parser.add_argument(
+        "--community",
+        help="Community to post to (optional)",
+    )
     parser.add_argument(
         "--tags",
         help="Comma-separated list of tags (default: hive,benchmark,nodes,api,performance)",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="hive-bench 1.0.0",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose logging",
     )
 
     # Parse arguments
@@ -72,16 +102,20 @@ def main():
             f"Database '{args.db}' not found. A new database will be created, but no historical data will be available."
         )
 
-    # Generate the post using our modular code
     try:
+        # Generate the post using our modular code
         content, metadata = generate_post(output_file=args.output, db_path=args.db, days=args.days)
         logging.info(f"Generated post content and saved to {args.output}")
+
+        if metadata is None or content is None:
+            logging.error("Post generation failed; no metadata/content returned.")
+            print("Failed to generate post content or metadata. See earlier errors for details.")
+            return 1
 
         # Save metadata to JSON file
         import json
         from pathlib import Path
 
-        # Get the absolute path to the project root directory if needed
         json_path = args.json
         if not os.path.isabs(json_path):
             current_file = Path(__file__).resolve()
@@ -92,59 +126,74 @@ def main():
             json.dump(metadata, f, indent=2)
         logging.info(f"Metadata saved to {json_path}")
 
-        # Post to Hive if requested
-        if args.post:
+        # Print summary information
+        print("\nPost Generation Summary:")
+        print(f"Generated post saved to: {args.output}")
+        print(f"Metadata saved to: {json_path}")
+        print(f"Included {args.days} days of historical data")
+        print(f"Working nodes: {metadata.get('node_count', 0)}")
+        print(f"Failing nodes: {metadata.get('failing_nodes', 0)}")
+        if metadata.get("top_nodes"):
+            print("\nTop performing nodes:")
+            for i, node in enumerate(metadata["top_nodes"][:5]):
+                print(f"    {i + 1}. {node}")
+
+        # Publish to Hive if requested
+        if args.publish:
+            # Get account and key from args or environment
+            account = args.author or os.environ.get("HIVE_ACCOUNT")
+            key = args.key or os.environ.get("POSTING_WIF")
+
+            if not account:
+                logging.error(
+                    "No Hive account specified. Use --author or set HIVE_ACCOUNT environment variable."
+                )
+                print("No Hive account specified. Use --author or set HIVE_ACCOUNT environment variable.")
+                return 1
+
+            if not key and not args.dry_run:
+                logging.error(
+                    "No Hive posting key specified. Use --key or set POSTING_WIF environment variable."
+                )
+                print("No Hive posting key specified. Use --key or set POSTING_WIF environment variable.")
+                return 1
+
             # Parse tags if provided
-            tags = None
-            if args.tags:
-                tags = [tag.strip() for tag in args.tags.split(",")]
+            tags = [tag.strip() for tag in args.tags.split(",")] if args.tags else ["hive", "benchmark", "nodes", "api", "performance"]
 
             # Generate a permlink if not provided
             permlink = args.permlink
             if not permlink and "title" in metadata:
-                # Create a permlink from the title
                 date_str = datetime.now().strftime("%Y%m%d")
                 title_slug = metadata["title"].lower().replace(" ", "-").replace("/", "-")
-                # Remove excessive -
-                title_slug = title_slug.replace("---", "-")
-                # Remove special characters
                 import re
-
                 title_slug = re.sub(r"[^a-z0-9-]", "", title_slug)
                 permlink = f"{date_str}-{title_slug}"
 
+            # Set environment variables for downstream modules
+            os.environ["HIVE_ACCOUNT"] = account
+            if key:
+                os.environ["POSTING_WIF"] = key
+            if args.dry_run:
+                os.environ["DRY_RUN"] = "True"
+
             # Post to Hive
             try:
-                # Post to Hive
                 _ = post_to_hive(
                     content=content,
                     metadata=metadata,
                     permlink=permlink,
                     tags=tags,
                     community=args.community,
-                    beneficiaries=None,  # No beneficiaries for now
+                    beneficiaries=None,
                 )
-
                 logging.info("Successfully posted to Hive")
                 print("\nSuccessfully posted to Hive!")
                 if permlink:
-                    print(
-                        f"View your post at: https://peakd.com/@{os.getenv('HIVE_ACCOUNT')}/{permlink}"
-                    )
+                    print(f"View your post at: https://peakd.com/@{account}/{permlink}")
             except Exception as e:
                 logging.error(f"Failed to post to Hive: {e}")
                 print(f"\nFailed to post to Hive: {e}")
-
-        # Print summary information
-        print("\nPost Generation Summary:")
-        print(f"Generated post saved to: {args.output}")
-        print(f"Working nodes: {metadata.get('node_count', 0)}")
-        print(f"Failing nodes: {metadata.get('failing_nodes', 0)}")
-
-        if metadata.get("top_nodes"):
-            print("\nTop performing nodes:")
-            for i, node in enumerate(metadata["top_nodes"][:5]):
-                print(f"{i + 1}. {node}")
 
         return 0
     except Exception as e:

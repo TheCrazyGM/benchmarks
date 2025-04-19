@@ -97,6 +97,11 @@ def main():
     logging.info(f"Generating benchmark post from database {args.db}")
     content, metadata = generate_post(output_file=args.output, db_path=args.db, days=args.days)
 
+    if metadata is None or content is None:
+        logging.error("Post generation failed; no metadata/content returned.")
+        print("Failed to generate post content or metadata. See earlier errors for details.")
+        return
+
     # Save metadata to JSON file
     json_path = args.json
     if not os.path.isabs(json_path):
