@@ -74,7 +74,11 @@ def parse_args():
         action="store_true",
         help="Update account JSON metadata with benchmark results",
     )
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Enable verbose logging",
+    )
     return parser.parse_args()
 
 
@@ -122,13 +126,17 @@ def main():
     # Run benchmarks if no report file was provided or if --update-metadata was not specified
     if report is None and (not args.update_metadata or not args.report_file):
         logging.info("Running benchmarks...")
-        report = run_benchmarks(
-            seconds=args.seconds,
-            threading=not args.no_threading,
-            num_retries=args.retries,
-            num_retries_call=args.call_retries,
-            timeout=args.timeout,
-        )
+        try:
+            report = run_benchmarks(
+                seconds=args.seconds,
+                threading=not args.no_threading,
+                num_retries=args.retries,
+                num_retries_call=args.call_retries,
+                timeout=args.timeout,
+            )
+        except Exception as err:
+            logging.error(f"Benchmark execution failed: {err}")
+            return 1
 
         # Store results in database if requested
         if not args.no_db:

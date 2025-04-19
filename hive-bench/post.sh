@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Get the script directory
 scriptdir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
@@ -11,7 +12,10 @@ fi
 
 # Load environment variables from .env file if it exists
 if [ -f ".env" ]; then
-  export $(grep -v '^#' .env | xargs)
+  # Load env vars from .env file
+  set -a
+  source .env
+  set +a
 fi
 
 # Generate the post content and publish to Hive

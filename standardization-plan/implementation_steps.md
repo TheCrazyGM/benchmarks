@@ -2,6 +2,12 @@
 
 This document outlines the specific steps needed to standardize the `hive-bench` and `engine-bench` projects.
 
+## Standardization Plan Updates
+
+- [x] Extracted `generate_permlink` utility in both CLI scripts for identical permlink logic.
+- [x] Unified title format (`Hive Benchmark Report - <date>`) and removed internal title setting in hive-bench post generation.
+- [x] Aligned CLI responsibility: title now only set by CLI in both projects.
+
 ## Engine Bench Updates
 
 1. Add missing `post_to_hive` function to `engine_bench/blockchain.py`
@@ -11,13 +17,13 @@ This document outlines the specific steps needed to standardize the `hive-bench`
 
 2. Standardize shell scripts
 
-   - Update `run.sh` to include better environment detection and script directory handling
-   - Update `post.sh` to use similar format and include `-p` flag for posting
+   - Update `run.sh` to include better environment detection and script directory handling  _[completed]_
+   - Update `post.sh` to use similar format and include `-p` flag for posting  _[completed]_
 
 3. Update CLI command structure
 
-   - Add posting functionality to `generate_post.py`
-   - Ensure consistent argument handling
+   - Add posting functionality to `generate_post.py`  _[completed]_
+   - Ensure consistent argument handling  _[completed]_
 
 4. Review database schema and ensure consistency
 
@@ -25,14 +31,14 @@ This document outlines the specific steps needed to standardize the `hive-bench`
 
 1. Standardize shell scripts
 
-   - Update `run.sh` to use more robust environment checks
-   - Ensure `post.sh` follows the standardized pattern
+   - Update `run.sh` to use more robust environment checks  _[completed]_
+   - Ensure `post.sh` follows the standardized pattern  _[completed]_
 
 2. Align file naming conventions
 
-   - Update references to `results.json` to `hive_benchmark_results.json`
-   - Update references to `benchmark_history.db` to `hive_benchmark_history.db`
-   - Update references to `benchmark_post.md` to `hive_benchmark_post.md`
+   - Update references to `results.json` to `hive_benchmark_results.json`  _[completed]_
+   - Update references to `benchmark_history.db` to `hive_benchmark_history.db`  _[completed]_
+   - Update references to `benchmark_post.md` to `hive_benchmark_post.md`  _[completed]_
 
 3. Update CLI scripts to match standardized pattern
 
@@ -54,7 +60,7 @@ This document outlines the specific steps needed to standardize the `hive-bench`
 
 3. Standardize logging configuration
 
-   - Use same format and levels in both projects
+   - Use same format and levels in both projects (_[completed]_)
 
 4. Align code formatting
    - Apply same code style to both projects

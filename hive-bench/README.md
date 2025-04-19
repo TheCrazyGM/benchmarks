@@ -18,26 +18,27 @@ The benchmark results are stored in a SQLite database and can be used to generat
 
 1. Clone this repository:
 
-   ```
+   ```bash
    git clone https://github.com/thecrazygm/hive-bench.git
    cd hive-bench
    ```
 
 2. Create and activate a virtual environment:
 
-   ```
+   ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows, use: .venv\Scripts\activate
    ```
 
 3. Install dependencies:
 
-   ```
+   ```bash
    pip install hive-nectar python-dotenv
    ```
 
 4. Set up your Hive account credentials:
-   ```
+
+   ```bash
    cp .env.sample .env
    # Edit .env with your Hive account and posting key
    ```
@@ -64,7 +65,7 @@ This will:
 2. Run the benchmark tests
 3. Store results in the SQLite database (`hive_benchmark_history.db`)
 4. Save a JSON report (`hive_benchmark_results.json`)
-5. Update the account's JSON metadata with the benchmark results (if `-u` flag is used)
+5. Update the account's JSON metadata with the benchmark results (if `-u` flag is used, prints transaction details)
 
 ### Generating Post Reports
 
@@ -105,7 +106,7 @@ This will create a markdown file (`hive_benchmark_post.md`) containing the bench
 - `-d, --db`: SQLite database file (default: hive_benchmark_history.db)
 - `-j, --json`: Path to save post metadata JSON (default: hive_benchmark_metadata.json)
 - `-t, --days`: Number of days of historical data to include (default: 7)
-- `-p, --post`: Post the generated content to Hive
+- `-p, --publish`: Publish the generated content to Hive
 - `--permlink`: Custom permlink for the post
 - `--community`: Community to post to
 - `--tags`: Comma-separated list of tags
@@ -127,4 +128,3 @@ When posting to Hive, the benchmark results are included in the post's `json_met
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-

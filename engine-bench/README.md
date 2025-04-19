@@ -18,26 +18,27 @@ The benchmark results are stored in a SQLite database and can be used to generat
 
 1. Clone this repository:
 
-   ```
+   ```bash
    git clone https://github.com/thecrazygm/engine-bench.git
    cd engine-bench
    ```
 
 2. Create and activate a virtual environment:
 
-   ```
+   ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows, use: .venv\Scripts\activate
    ```
 
 3. Install dependencies:
 
-   ```
+   ```bash
    pip install nectar nectarengine
    ```
 
 4. Set up your Hive account credentials:
-   ```
+
+   ```bash
    cp .env.sample .env
    # Edit .env with your Hive account and posting key
    ```
@@ -64,7 +65,7 @@ This will:
 2. Run the benchmark tests
 3. Store results in the SQLite database (`engine_benchmark_history.db`)
 4. Save a JSON report (`engine_benchmark_results.json`)
-5. Update the account's JSON metadata with the benchmark results (if `-u` flag is used)
+5. Update the account's JSON metadata with the benchmark results (if `-u` flag is used, prints transaction details)
 
 ### Generating Post Reports
 
@@ -104,7 +105,7 @@ This will create a markdown file (`engine_benchmark_post.md`) containing the ben
 - `-d, --db`: SQLite database file (default: engine_benchmark_history.db)
 - `-j, --json`: Path to save post metadata JSON (default: engine_benchmark_metadata.json)
 - `-t, --days`: Number of days of historical data to include (default: 7)
-- `-p, --post`: Post the generated content to Hive
+- `-p, --publish`: Publish the generated content to Hive
 - `--permlink`: Custom permlink for the post
 - `--community`: Community to post to
 - `--tags`: Comma-separated list of tags
@@ -120,7 +121,7 @@ Edit the `h-e-nodes.txt` file to add or remove Hive-Engine nodes from the benchm
 
 You can customize benchmark parameters by editing the `.env` file:
 
-```
+```bash
 # Benchmark parameters
 BENCHMARK_SECONDS=30       # Duration for each benchmark test
 BENCHMARK_ACCOUNT=username  # Account for history benchmark
