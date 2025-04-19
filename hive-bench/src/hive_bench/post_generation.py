@@ -874,7 +874,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
     for node, score_data in sorted_scores:
         markdown.append(
-            f"| <{node}> | {score_data['score']} | {score_data['block_rank']} | "
+            f"| <{node}> | {format_float(score_data['score'])} | {score_data['block_rank']} | "
             f"{score_data['history_rank']} | {score_data['api_rank']} | "
             f"{score_data['config_rank']} | {score_data['block_diff_rank']} |"
         )
