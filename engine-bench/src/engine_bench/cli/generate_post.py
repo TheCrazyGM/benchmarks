@@ -5,12 +5,20 @@ import argparse
 import json
 import logging
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
 from engine_bench import __version__
 from engine_bench.blockchain import post_to_hive
 from engine_bench.post_generation import generate_post
+
+
+def generate_permlink(title, date_str):
+    """Generate a standardized permlink from title and date."""
+    title_slug = title.lower().replace(" ", "-").replace("/", "-")
+    title_slug = re.sub(r"[^a-z0-9-]", "", title_slug)
+    return f"{date_str.replace('-', '')}-{title_slug}"
 
 
 def get_project_root() -> Path:
@@ -152,11 +160,11 @@ def main():
 
         # Prepare post metadata
         date_str = datetime.now().strftime("%Y-%m-%d")
-        title = f"Hive-Engine Node Benchmark Report - {date_str}"
+        title = f"Hive-Engine Benchmark Report - {date_str}"
         metadata["title"] = title
 
-        # Always generate permlink automatically
-        permlink = f"hive-engine-benchmark-{date_str.lower().replace('-', '')}"
+        # Standardized permlink generation
+        permlink = generate_permlink(metadata["title"], date_str)
 
         # Get default tags
         tags = ["hive-engine", "benchmark", "nodes", "performance", "api"]

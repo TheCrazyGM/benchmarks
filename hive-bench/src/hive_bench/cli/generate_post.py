@@ -3,15 +3,21 @@
 import argparse
 import logging
 import os
+import re
 import sys
 from datetime import datetime
 
 from dotenv import load_dotenv
 
 from hive_bench.blockchain import post_to_hive
-
-# Import from modular structure
 from hive_bench.post_generation import generate_post
+
+
+def generate_permlink(title, date_str):
+    """Generate a standardized permlink from title and date."""
+    title_slug = title.lower().replace(" ", "-").replace("/", "-")
+    title_slug = re.sub(r"[^a-z0-9-]", "", title_slug)
+    return f"{date_str}-{title_slug}"
 
 
 def main():
@@ -148,27 +154,32 @@ def main():
                 logging.error(
                     "No Hive account specified. Use --author or set HIVE_ACCOUNT environment variable."
                 )
-                print("No Hive account specified. Use --author or set HIVE_ACCOUNT environment variable.")
+                print(
+                    "No Hive account specified. Use --author or set HIVE_ACCOUNT environment variable."
+                )
                 return 1
 
             if not key and not args.dry_run:
                 logging.error(
                     "No Hive posting key specified. Use --key or set POSTING_WIF environment variable."
                 )
-                print("No Hive posting key specified. Use --key or set POSTING_WIF environment variable.")
+                print(
+                    "No Hive posting key specified. Use --key or set POSTING_WIF environment variable."
+                )
                 return 1
 
             # Parse tags if provided
-            tags = [tag.strip() for tag in args.tags.split(",")] if args.tags else ["hive", "benchmark", "nodes", "api", "performance"]
+            tags = (
+                [tag.strip() for tag in args.tags.split(",")]
+                if args.tags
+                else ["hive", "benchmark", "nodes", "api", "performance"]
+            )
 
             # Generate a permlink if not provided
             permlink = args.permlink
             if not permlink and "title" in metadata:
                 date_str = datetime.now().strftime("%Y%m%d")
-                title_slug = metadata["title"].lower().replace(" ", "-").replace("/", "-")
-                import re
-                title_slug = re.sub(r"[^a-z0-9-]", "", title_slug)
-                permlink = f"{date_str}-{title_slug}"
+                permlink = generate_permlink(metadata["title"], date_str)
 
             # Set environment variables for downstream modules
             os.environ["HIVE_ACCOUNT"] = account

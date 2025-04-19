@@ -886,7 +886,6 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         "failing_nodes": len(benchmark_data.get("failing_nodes", {})),
         "top_nodes": [node for node, _ in sorted_scores[:5]] if sorted_scores else [],
     }
-    metadata["title"] = f"Full API Node Update - {formatted_date}"
 
     # Join all lines to create the markdown content
     markdown_content = "\n".join(markdown)
