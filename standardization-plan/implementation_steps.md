@@ -12,8 +12,8 @@ This document outlines the specific steps needed to standardize the `hive-bench`
 
 1. Add missing `post_to_hive` function to `engine_bench/blockchain.py`
 
-   - Copy the function from `hive-bench/bench/blockchain.py`
-   - Update any project-specific constants
+   - Copy the function from `hive-bench/bench/blockchain.py`  _[completed]_
+   - Update any project-specific constants  _[completed]_
 
 2. Standardize shell scripts
 
@@ -51,30 +51,30 @@ This document outlines the specific steps needed to standardize the `hive-bench`
 
 1. Standardize dependencies in `pyproject.toml`
 
-   - Ensure both projects have similar development tools configuration
-   - Align Python version requirements
+   - Ensure both projects have similar development tools configuration  _[completed]_
+   - Align Python version requirements  _[completed]_
 
 2. Update README files for consistency  _[completed]_
 
-   - Ensure both have similar structure and level of detail
-   - Include similar installation and usage instructions
+   - Ensure both have similar structure and level of detail  _[completed]_
+   - Include similar installation and usage instructions  _[completed]_
 
 3. Standardize logging configuration
 
-   - Use same format and levels in both projects (_[completed]_)
+   - Use same format and levels in both projects  _[completed]_
 
 4. Align code formatting
-   - Apply same code style to both projects
-   - Use ruff for linting and formatting
+   - Apply same code style to both projects  _[completed]_
+   - Use ruff for linting and formatting  _[completed]_
 
 ## Verification Steps
 
 After making the changes, verify:
 
-1. Both projects can run benchmarks successfully
-2. Both projects can generate posts and update JSON metadata
-3. Both projects can post to Hive
-4. Error handling works correctly in both projects
+1. Both projects can run benchmarks successfully  _[completed]_
+2. Both projects can generate posts and update JSON metadata  _[completed]_
+3. Both projects can post to Hive  _[completed]_
+4. Error handling works correctly in both projects  _[completed]_
 
 ## Special Considerations
 
