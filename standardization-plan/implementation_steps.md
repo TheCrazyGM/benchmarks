@@ -42,9 +42,10 @@ This document outlines the specific steps needed to standardize the `hive-bench`
 
 3. Update CLI scripts to match standardized pattern
 
-   - Update argument handling in `bench_runner.py` and `generate_post.py`
+   - Update argument handling in `bench_runner.py` and `generate_post.py`  _[completed]_
+   - Update argument handling in `generate_post.py`  _[completed]_
 
-4. Enhance error handling and logging
+4. Enhance error handling and logging  _[completed]_
 
 ## General Updates for Both Projects
 
@@ -53,7 +54,7 @@ This document outlines the specific steps needed to standardize the `hive-bench`
    - Ensure both projects have similar development tools configuration
    - Align Python version requirements
 
-2. Update README files for consistency
+2. Update README files for consistency  _[completed]_
 
    - Ensure both have similar structure and level of detail
    - Include similar installation and usage instructions
