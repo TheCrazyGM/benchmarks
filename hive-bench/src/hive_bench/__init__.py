@@ -2,7 +2,7 @@
 
 import sys
 
-__version__ = "0.2.0"  # Update to match pyproject.toml
+__version__ = "0.2.1"  # Update to match pyproject.toml
 
 # Check Python version
 if sys.version_info < (3, 13):

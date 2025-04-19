@@ -286,7 +286,9 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     markdown.append(f"{current_time} (UTC)")
-    markdown.append("**Note:** This post is published from the @nectarflower account, but the benchmark data and node metadata are from the @flowerengine account.")
+    markdown.append(
+        "**Benchmarks are performed from a Digital Ocean Droplet in Frankfurt, Germany. Results may vary based on geographic location.**\n"
+    )
     markdown.append(
         "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
     )
@@ -297,7 +299,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Failing nodes section
     markdown.append("## List of failing nodes\n")
     markdown.append(
-        "This table includes a list of all nodes which were not able to answer to a `getStatus` API call within the specified timeout.\n"
+        "This table includes a list of all nodes which were not able to answer to a `getStatus` API call within the specified timeout (default: 30 seconds).\n"
     )
 
     markdown.append("|node | error |")
@@ -335,6 +337,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
     # Prepare concise metadata for json_metadata (after config_sorted_nodes is defined)
     from engine_bench import __version__
+
     metadata = {
         "app": f"engine-bench/{__version__}",
         "node_count": len(nodes),
@@ -344,7 +347,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         "top_nodes": [
             {"url": node_data["node"], "rank": node_data["config"]["rank"]}
             for node_data in config_sorted_nodes[:3]
-        ]
+        ],
     }
 
     # Node Uptime Statistics (if historical data available)
@@ -372,7 +375,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Token retrieval section
     markdown.append("## Token retrieval\n")
     markdown.append(
-        "This table shows how many token operations were processed by the node within the specified time. The nodes are ordered according to the number of operations processed.\n"
+        "This table shows how many token operations were processed by the node within the default benchmark duration (30 seconds). The nodes are ordered according to the number of operations processed.\n"
     )
 
     markdown.append("| node | operations processed | operations per second  |")
@@ -397,7 +400,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Contract operations section
     markdown.append("## Contract operations\n")
     markdown.append(
-        "This table shows how many contract operations were processed by the node within the specified time. The nodes are ordered according to the number of operations processed.\n"
+        "This table shows how many contract operations were processed by the node within the default benchmark duration (30 seconds). The nodes are ordered according to the number of operations processed.\n"
     )
 
     markdown.append("| node | operations processed | operations per second |")
@@ -422,7 +425,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Account history section
     markdown.append("## Account history operations\n")
     markdown.append(
-        "This table shows how many account history operations were processed by the node within the specified time. The nodes are ordered according to the number of operations processed.\n"
+        "This table shows how many account history operations were processed by the node within the default benchmark duration (30 seconds). The nodes are ordered according to the number of operations processed.\n"
     )
 
     markdown.append("| node | operations processed | operations per second |")
@@ -447,7 +450,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Latency section
     markdown.append("## Latency\n")
     markdown.append(
-        "This table shows the latency measurements for each node. The nodes are ordered according to average latency (lowest first).\n"
+        "This table shows the latency measurements for each node. Latency is measured over 5 API calls to `api.find` (default). The nodes are ordered according to average latency (lowest first).\n"
     )
 
     markdown.append("| node | avg latency [s] | min latency [s] | max latency [s] |")

@@ -467,6 +467,9 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     markdown.append(f"{current_time} (UTC)")
     markdown.append(
+        "**Benchmarks are performed from a Digital Ocean Droplet in Frankfurt, Germany. Results may vary based on geographic location.**\n"
+    )
+    markdown.append(
         "@nectarflower provides daily updates about the state of all available full API node server for HIVE."
     )
     markdown.append(
@@ -476,7 +479,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Failing nodes section
     markdown.append("## List of failing nodes\n")
     markdown.append(
-        "This table includes a list of all nodes which were not able to answer to a `get_config` API call within the specified timeout.\n"
+        "This table includes a list of all nodes which were not able to answer to a `get_config` API call within the specified timeout (default: 60 seconds).\n"
     )
 
     markdown.append("|node | error |")
@@ -491,7 +494,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Working nodes section - config time
     markdown.append("## List of working nodes (At least once)\n")
     markdown.append(
-        "This table includes all nodes which were able to answer a `get_config` call within the timeout. The achieved mean duration values are shown. The returned version is also shown.\n"
+        "This table includes all nodes which were able to answer a `get_config` call within the timeout (default: 60 seconds). The achieved mean duration values are shown. The returned version is also shown.\n"
     )
 
     markdown.append("|node |  mean time [s] | version  |")
@@ -516,6 +519,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
     # Prepare concise metadata for json_metadata (after config_sorted_nodes is defined)
     from hive_bench import __version__
+
     metadata = {
         "app": f"hive-bench/{__version__}",
         "node_count": len(report),
@@ -525,7 +529,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         "top_nodes": [
             {"url": node_data["node"], "rank": node_data["config"]["rank"]}
             for node_data in config_sorted_nodes[:3]
-        ]
+        ],
     }
 
     # Node Uptime Statistics (if historical data available)
@@ -553,7 +557,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Streaming blocks section
     markdown.append("## Streaming blocks\n")
     markdown.append(
-        "This table shows how many blocks were streamed by the node within the specified time. The RPCs were ordered according to the number of blocks streamed.\n"
+        "This table shows how many blocks were streamed by the node within the default benchmark duration (30 seconds). The RPCs are ordered according to the number of blocks streamed.\n"
     )
 
     markdown.append("| node | blocks streamed | blocks per second  |")
@@ -578,7 +582,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Streaming account history section
     markdown.append("## Streaming account history\n")
     markdown.append(
-        "This table shows how many account history operations were streamed by the node within the specified time. The RPCs were ordered according to the number of operations streamed.\n"
+        "This table shows how many account history operations were streamed by the node within the default benchmark duration (60 seconds). The RPCs are ordered according to the number of operations streamed.\n"
     )
 
     markdown.append("| node | operations streamed | operations per second |")
@@ -603,7 +607,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # API call time section
     markdown.append("## API call time\n")
     markdown.append(
-        "This table shows how long it took to call an API. The RPCs were ordered according to the access time.\n"
+        "This table shows how long it took to call an API (single request, default timeout: 60 seconds). The RPCs are ordered according to the access time.\n"
     )
 
     markdown.append("| node |  response time [s] |")
