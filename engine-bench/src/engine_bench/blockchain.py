@@ -22,8 +22,20 @@ from nectar.exceptions import (
 from nectar.hive import Hive
 from nectar.nodelist import NodeList
 
-# Initialize logger
+from engine_bench import __app_name__ as APP_NAME
+from engine_bench import __version__ as APP_VERSION
+
+"""Blockchain interaction module for the Hive-Engine node benchmarking application.
+
+This module provides functions for interacting with the Hive blockchain,
+including updating account metadata with benchmark results and posting
+benchmark reports.
+"""
+
 logger = logging.getLogger(__name__)
+
+# Default tags for Hive-Engine benchmark posts
+DEFAULT_TAGS = ["hive-engine", "benchmark", "nodes", "api", "performance"]
 
 # Optional fallback nodes if the NodeList fails
 FALLBACK_NODES = [
@@ -219,7 +231,7 @@ def post_to_hive(
 
     # Set default tags if not provided
     if not tags:
-        tags = ["hive-engine", "benchmark", "nodes", "api", "performance"]
+        tags = DEFAULT_TAGS
 
     try:
         # Get Hive connection
@@ -228,7 +240,8 @@ def post_to_hive(
         # Prepare JSON metadata
         json_metadata = {
             "tags": tags,
-            "app": "engine-bench/0.1.0",
+            # identify app by standardized name/version
+            "app": f"{APP_NAME}/{APP_VERSION}",
             "timestamp": metadata.get("timestamp", ""),
             "node_count": metadata.get("node_count", 0),
             "failing_nodes": metadata.get("failing_nodes", 0),

@@ -29,6 +29,7 @@ The recommended approach is to keep the core differences that reflect the unique
 5. **Error Handling**: Implement consistent error handling and logging across both projects.
 
 6. **Parameter Handling**: Ensure parameters are used consistently across both projects, especially for account-based operations.
+7. **Version Management**: Centralize application name and version in package `__init__.py` and maintain synchronization via an `update_versions.py` script.
 
 ## Implementation Priority
 
@@ -43,6 +44,7 @@ The recommended approach is to keep the core differences that reflect the unique
 5. **Documentation**: Update documentation for consistency.
 
 6. **Code Style**: Apply consistent code style and formatting.
+7. **Version Management**: Centralize and sync application name/version in package metadata.
 
 ## Benefits of Standardization
 

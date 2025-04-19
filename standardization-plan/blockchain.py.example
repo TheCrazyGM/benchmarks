@@ -31,10 +31,10 @@ FALLBACK_NODES = [
     "https://api.hive.blog",
 ]
 
-# Project-specific constants (to be modified for each project)
-APP_NAME = "{APP_NAME}"  # e.g., "hive-bench" or "engine-bench"
-APP_VERSION = "{APP_VERSION}"  # e.g., "0.2.0" or "0.1.0"
-DEFAULT_TAGS = {DEFAULT_TAGS}  # e.g., ["hive", "benchmark", "nodes", "api", "performance"]
+# Application identity imported from package metadata
+from {PACKAGE_NAME} import __app_name__ as APP_NAME, __version__ as APP_VERSION
+# Default tags for this project
+DEFAULT_TAGS = {DEFAULT_TAGS}
 
 
 def get_project_root() -> Path:

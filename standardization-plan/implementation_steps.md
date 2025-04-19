@@ -64,6 +64,7 @@ This document outlines the specific steps needed to standardize the `hive-bench`
    - Use same format and levels in both projects  _[completed]_
 
 4. Align code formatting
+5. Centralize application name and version in package __init__.py and maintain via update_versions.py  _[completed]_
    - Apply same code style to both projects  _[completed]_
    - Use ruff for linting and formatting  _[completed]_
 

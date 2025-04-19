@@ -75,7 +75,8 @@ def parse_args():
         help="Update account JSON metadata with benchmark results",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose logging",
     )

@@ -2,7 +2,8 @@
 
 import sys
 
-__version__ = "0.2.1"  # Update to match pyproject.toml
+__app_name__ = "engine-bench"
+__version__ = "0.2.1"
 
 # Check Python version
 if sys.version_info < (3, 13):

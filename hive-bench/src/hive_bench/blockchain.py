@@ -20,8 +20,15 @@ from nectar.exceptions import (
 from nectar.hive import Hive
 from nectar.nodelist import NodeList
 
+from hive_bench import __app_name__ as APP_NAME
+from hive_bench import __version__ as APP_VERSION
+
 # Initialize logger
 logger = logging.getLogger(__name__)
+
+
+# Default tags for Hive benchmark posts
+DEFAULT_TAGS = ["hive", "benchmark", "nodes", "api", "performance"]
 
 # Optional fallback nodes if the NodeList fails
 FALLBACK_NODES = [
@@ -217,7 +224,7 @@ def post_to_hive(
 
     # Set default tags if not provided
     if not tags:
-        tags = ["hive", "benchmark", "nodes", "api", "performance"]
+        tags = DEFAULT_TAGS
 
     try:
         # Get Hive connection
@@ -226,7 +233,8 @@ def post_to_hive(
         # Prepare JSON metadata
         json_metadata = {
             "tags": tags,
-            "app": "nectar-node-benchmarks/1.0",
+            # identify app by standardized name/version
+            "app": f"{APP_NAME}/{APP_VERSION}",
             "timestamp": metadata.get("timestamp", ""),
             "node_count": metadata.get("node_count", 0),
             "failing_nodes": metadata.get("failing_nodes", 0),

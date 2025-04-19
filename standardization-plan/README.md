@@ -68,7 +68,8 @@ This document outlines the standardization plan for the `hive-bench` and `engine
 ### Standardization Plan
 
 - Add the `post_to_hive` function to `engine-bench`
-- Ensure blockchain.py files are identical except for project-specific constants
+- Centralize application name and version in `src/<package>/__init__.py` and import them in `blockchain.py` instead of hard-coded constants
+- Ensure blockchain.py files otherwise match, with only project-specific tags differing
 
 ## 6. Documentation
 
