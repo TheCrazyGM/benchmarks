@@ -529,7 +529,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
             for node_data in config_sorted_nodes[:3]
         ],
         "title": f"Full Hive API Node Update - ({formatted_date})",
-    }
+    }  # Always include title, always dict for top_nodes
 
     # Node Uptime Statistics (if historical data available)
     if historical_data and historical_data.get("uptime"):
@@ -957,6 +957,9 @@ def generate_post(output_file="benchmark_post.md", db_path="benchmark_history.db
             logging.error(traceback.format_exc())
             return None, None
 
+        # Final defensive check: ensure 'title' is present in metadata
+        if metadata is not None and "title" not in metadata:
+            metadata["title"] = "Full Hive API Node Update"
         return content, metadata
     except Exception as e:
         import traceback
