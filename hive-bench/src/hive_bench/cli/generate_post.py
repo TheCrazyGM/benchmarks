@@ -113,10 +113,7 @@ def main():
         print("\nTop nodes from benchmark:")
         if "top_nodes" in metadata and metadata["top_nodes"]:
             for i, node_data in enumerate(metadata["top_nodes"], 1):
-                if isinstance(node_data, dict) and "url" in node_data:
-                    print(f"    {i}. {node_data['url']} (rank: {node_data.get('rank', 'N/A')})")
-                else:
-                    print(f"    {i}. {node_data}  # unexpected format")
+                print(f"    {i}. {node_data['url']} (rank: {node_data.get('rank', 'N/A')})")
         else:
             print("    No top nodes available.")
 

@@ -539,13 +539,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Title is NOT included in metadata by default, exactly like engine-bench
     # This is the key difference in approach that was causing issues
 
-    # Debug log the structure of top_nodes to identify any issues
-    if "top_nodes" in metadata:
-        logging.info(f"DEBUG: top_nodes structure: {type(metadata['top_nodes'])}")
-        for i, node in enumerate(metadata["top_nodes"]):
-            logging.info(f"DEBUG: top_node[{i}] = {type(node)} - {node}")
-    else:
-        logging.info("DEBUG: top_nodes not in metadata")
+    # No debug logs needed now that the top_nodes structure is fixed
 
     logging.info(f"Returning metadata with keys: {list(metadata.keys())}")
 
@@ -974,14 +968,6 @@ def generate_post(output_file="benchmark_post.md", db_path="benchmark_history.db
         try:
             content, metadata = generate_markdown(
                 benchmark_data, output_file, historical_data, days=days
-            )
-            # Debug what was received
-            logging.info(f"FINAL-DEBUG: generate_post received metadata type: {type(metadata)}")
-            logging.info(
-                f"FINAL-DEBUG: generate_post received metadata keys: {metadata.keys() if isinstance(metadata, dict) else 'NOT A DICT!'}"
-            )
-            logging.info(
-                f"FINAL-DEBUG: generate_post received metadata title: '{metadata.get('title', 'NOT FOUND')}' if isinstance(metadata, dict) else 'NO TITLE'"
             )
         except Exception as e:
             import traceback
