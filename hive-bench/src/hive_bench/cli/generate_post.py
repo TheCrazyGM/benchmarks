@@ -10,6 +10,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 from hive_bench.blockchain import post_to_hive
+from hive_bench.database import get_project_root
 from hive_bench.post_generation import generate_post
 
 
@@ -79,24 +80,27 @@ def main():
         logging.warning(f"Database '{args.db}' not found. Starting fresh without history.")
     # Execute generation and optional publish
     try:
-        content, metadata = generate_post(output_file=args.output, db_path=args.db, days=args.days)
+        # Use project root for relative output paths (like engine-bench)
+        output_path = args.output
+        if not os.path.isabs(output_path):
+            output_path = os.path.join(get_project_root(), output_path)
+
+        content, metadata = generate_post(output_file=output_path, db_path=args.db, days=args.days)
         if not content or metadata is None:
             logging.error("Post generation failed; no content or metadata.")
             return 1
         # Save metadata
         import json
 
-        meta_path = (
-            args.json
-            if os.path.isabs(args.json)
-            else os.path.join(os.path.dirname(__file__), args.json)
-        )
+        meta_path = args.json
+        if not os.path.isabs(meta_path):
+            meta_path = os.path.join(get_project_root(), meta_path)
         with open(meta_path, "w") as mf:
             json.dump(metadata, mf, indent=2)
         logging.info(f"Metadata saved to {meta_path}")
         # Print summary
         print(
-            f"Generated post: {args.output}\nMetadata: {meta_path}\nDays: {args.days}\nNodes: {metadata.get('node_count')} (failures: {metadata.get('failing_nodes')})"
+            f"Generated post: {output_path}\nMetadata: {meta_path}\nDays: {args.days}\nNodes: {metadata.get('node_count')} (failures: {metadata.get('failing_nodes')})"
         )
         # Publish
         if args.publish:
