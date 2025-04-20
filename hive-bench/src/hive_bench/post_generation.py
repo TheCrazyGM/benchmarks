@@ -528,6 +528,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
             {"url": node_data["node"], "rank": node_data["config"]["rank"]}
             for node_data in config_sorted_nodes[:3]
         ],
+        "title": f"Full Hive API Node Update - ({formatted_date})",
     }
 
     # Node Uptime Statistics (if historical data available)
