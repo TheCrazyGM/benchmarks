@@ -110,6 +110,10 @@ def main():
                 if args.tags
                 else ["hive", "benchmark", "nodes", "api", "performance"]
             )
+            if "title" not in metadata:
+                logging.error("Metadata is missing the 'title' key. Metadata: %s", metadata)
+                print("ERROR: Metadata is missing the 'title' key. Cannot generate permlink or post.")
+                return 1
             permlink = args.permlink or generate_permlink(
                 metadata["title"], datetime.now().strftime("%Y%m%d")
             )
