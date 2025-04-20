@@ -239,15 +239,11 @@ def get_historical_data(db_path, days=7):
     historical_data["trends"] = node_trends
     historical_data["consistency"] = node_consistency
     historical_data["uptime"] = node_uptime
-
     return historical_data
 
 
 def get_latest_benchmark_data(db_path="benchmark_history.db"):
-    """Get the latest benchmark data from the SQLite database.
-
-    This function queries the database for the latest benchmark run and formats
-    the data to match the structure expected by the generate_markdown function.
+    """Get the latest benchmark data from the SQLite database. STRUCTURALLY IDENTICAL TO ENGINE-BENCH.
 
     Args:
         db_path (str): Path to the SQLite database file.
@@ -401,19 +397,18 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
         start_time = test_parameters.get("start_time", timestamp)
         end_time = test_parameters.get("end_time", timestamp)
 
-        # Build the final report structure
-        report = {
-            "nodes": working_nodes,
-            "failing_nodes": failing_nodes,
-            "report": list(node_data.values()),
+        # Build the final report structure - exactly matching engine-bench's structure
+        report_data = {
+            "timestamp": timestamp,
             "parameter": {
                 "num_retries": test_parameters.get("num_retries", 3),
                 "num_retries_call": test_parameters.get("num_retries_call", 3),
                 "timeout": test_parameters.get("timeout", 30),
                 "threading": test_parameters.get("threading", True),
-                "hive_nectar_version": hive_nectar_version,
                 "start_time": start_time,
                 "end_time": end_time,
+                "timestamp": timestamp,
+                "hive_nectar_version": hive_nectar_version,
                 "script_version": __version__,
                 "benchmarks": {
                     "block": {"data": ["count"]},
@@ -423,9 +418,16 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
                     "block_diff": {"data": ["diff_head_irreversible", "head_delay"]},
                 },
             },
+            "nodes": working_nodes,
+            "failing_nodes": failing_nodes,
+            "report": list(node_data.values()),
         }
 
-        return report
+        # Add logging to debug data structure
+        logging.info(f"get_latest_benchmark_data: Returning data with timestamp {timestamp}")
+        logging.info(f"get_latest_benchmark_data: nodes count: {len(working_nodes)}, failing nodes: {len(failing_nodes)}")
+
+        return report_data
     except sqlite3.Error as e:
         logging.error(f"Database error: {str(e)}")
         return None
@@ -455,9 +457,10 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
             - markdown_content (str): The generated markdown content
             - metadata (dict): Metadata about the generated content
     """
-    # Extract timestamp from data or use current time
+    # Extract timestamp and parameters from data (like engine-bench) or use current time
     timestamp = benchmark_data.get("timestamp", datetime.now().isoformat())
     formatted_date = datetime.fromisoformat(timestamp).strftime("%d/%m/%Y")
+    params = benchmark_data.get("parameter", {})
 
     # Create markdown content list
     markdown = []
@@ -520,16 +523,22 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
     metadata = {
         "app": f"hive-bench/{__version__}",
-        "node_count": len(report),
-        "failing_nodes": len(failing_nodes),
+        "node_count": len(benchmark_data.get("nodes", [])),
+        "failing_nodes": len(benchmark_data.get("failing_nodes", {})),
         "tags": ["hive", "benchmark", "nodes", "performance", "api"],
-        "timestamp": timestamp,
+        "timestamp": params.get("timestamp", timestamp),
         "top_nodes": [
             {"url": node_data["node"], "rank": node_data["config"]["rank"]}
             for node_data in config_sorted_nodes[:3]
         ],
         "title": f"Full Hive API Node Update - ({formatted_date})",
-    }  # Always include title, always dict for top_nodes
+    }
+    logging.info(f"generate_markdown: Building metadata with title: '{metadata.get('title')}'")
+    if "title" not in metadata:
+        logging.error("CRITICAL: Title missing from metadata after construction!")
+    return_timestamp = metadata.get("timestamp", "")
+    logging.info(f"generate_markdown: Returning metadata with timestamp: {return_timestamp}")
+
 
     # Node Uptime Statistics (if historical data available)
     if historical_data and historical_data.get("uptime"):
@@ -957,9 +966,10 @@ def generate_post(output_file="benchmark_post.md", db_path="benchmark_history.db
             logging.error(traceback.format_exc())
             return None, None
 
-        # Final defensive check: ensure 'title' is present in metadata
-        if metadata is not None and "title" not in metadata:
-            metadata["title"] = "Full Hive API Node Update"
+        # Fail if 'title' is missing, matching engine-bench behavior
+        if metadata is None or "title" not in metadata:
+            logging.error("generate_post: Metadata missing 'title' key, aborting post generation.")
+            return None, None
         return content, metadata
     except Exception as e:
         import traceback
