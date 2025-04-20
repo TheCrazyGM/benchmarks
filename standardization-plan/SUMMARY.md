@@ -18,18 +18,23 @@ After examining both the `hive-bench` and `engine-bench` projects, I've identifi
 
 The recommended approach is to keep the core differences that reflect the unique aspects of each blockchain while standardizing:
 
-1. **File and Function Structure**: Ensure both projects follow the same structure, naming conventions, and patterns.
+1. **File and Function Structure**: Ensure both projects follow the same structure, naming conventions, and patterns. ✅
 
-2. **Shell Scripts**: Adopt the more robust approach from `engine-bench` for both projects.
+2. **Shell Scripts**: Adopt the more robust approach from `engine-bench` for both projects. ✅
 
-3. **CLI Interface**: Standardize command names, argument handling, and help text.
+3. **CLI Interface**: Standardize command names, argument handling, and help text. ✅
 
-4. **Documentation**: Align README files, comments, and usage examples.
+4. **Documentation**: Align README files, comments, and usage examples. ✅
 
-5. **Error Handling**: Implement consistent error handling and logging across both projects.
+5. **Error Handling**: Implement consistent error handling and logging across both projects. ✅
 
-6. **Parameter Handling**: Ensure parameters are used consistently across both projects, especially for account-based operations.
-7. **Version Management**: Centralize application name and version in package `__init__.py` and maintain synchronization via an `update_versions.py` script.
+6. **Parameter Handling**: Ensure parameters are used consistently across both projects, especially for account-based operations. ✅
+
+7. **Metadata Structure**: Ensure identical metadata structure between projects, particularly for `top_nodes` and title handling. ✅
+
+8. **CLI Output Format**: Standardize CLI output formatting and logging across both projects. ✅
+
+9. **Version Management**: Centralize application name and version in package `__init__.py` and maintain synchronization via an `update_versions.py` script. ✅
 
 ## Implementation Priority
 

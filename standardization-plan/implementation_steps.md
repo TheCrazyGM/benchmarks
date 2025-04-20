@@ -7,6 +7,9 @@ This document outlines the specific steps needed to standardize the `hive-bench`
 - [x] Extracted `generate_permlink` utility in both CLI scripts for identical permlink logic.
 - [x] Unified title format (`Hive Benchmark Report - <date>`) and removed internal title setting in hive-bench post generation.
 - [x] Aligned CLI responsibility: title now only set by CLI in both projects.
+- [x] Fixed metadata structure for `top_nodes` to be identical (array of objects with `url` and `rank` properties).
+- [x] Standardized logging format in CLI scripts.
+- [x] Made CLI output formatting consistent across both projects.
 
 ## Engine Bench Updates
 

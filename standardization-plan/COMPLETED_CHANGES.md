@@ -67,6 +67,21 @@ We've implemented the following standardization changes to the `hive-bench` and 
 4. **Robustness**: Better error handling and environment checks in both projects
 5. **Flexibility**: Support for different accounts when updating metadata without changing environment variables
 
+## 9. Metadata Handling and Structure
+
+- Aligned metadata structure between both projects
+- Ensured that the `top_nodes` field uses identical structure (array of objects with `url` and `rank` properties)
+- Fixed how the title field is handled in both projects (added by CLI, not in post generation)
+- Made CLI scripts structurally identical in how they process and output metadata
+- Standardized error handling for missing metadata fields
+
+## 10. CLI Output and Logging
+
+- Made CLI output formatting identical across both projects
+- Standardized summary output with details on node count, top nodes, and performance metrics
+- Used consistent logging format in both CLIs (`%(asctime)s - %(name)s - %(levelname)s - %(message)s`)
+- Fixed helper functions to behave identically across both codebases
+
 ## Pending Further Standardization
 
 Some areas that could be further standardized:

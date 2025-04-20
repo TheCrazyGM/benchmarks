@@ -425,7 +425,9 @@ def get_latest_benchmark_data(db_path="benchmark_history.db"):
 
         # Add logging to debug data structure
         logging.info(f"get_latest_benchmark_data: Returning data with timestamp {timestamp}")
-        logging.info(f"get_latest_benchmark_data: nodes count: {len(working_nodes)}, failing nodes: {len(failing_nodes)}")
+        logging.info(
+            f"get_latest_benchmark_data: nodes count: {len(working_nodes)}, failing nodes: {len(failing_nodes)}"
+        )
 
         return report_data
     except sqlite3.Error as e:
@@ -521,6 +523,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Prepare concise metadata for json_metadata (after config_sorted_nodes is defined)
     from hive_bench import __version__
 
+    # Create metadata dictionary exactly matching engine-bench's structure
     metadata = {
         "app": f"hive-bench/{__version__}",
         "node_count": len(benchmark_data.get("nodes", [])),
@@ -531,14 +534,20 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
             {"url": node_data["node"], "rank": node_data["config"]["rank"]}
             for node_data in config_sorted_nodes[:3]
         ],
-        "title": f"Full Hive API Node Update - ({formatted_date})",
     }
-    logging.info(f"generate_markdown: Building metadata with title: '{metadata.get('title')}'")
-    if "title" not in metadata:
-        logging.error("CRITICAL: Title missing from metadata after construction!")
-    return_timestamp = metadata.get("timestamp", "")
-    logging.info(f"generate_markdown: Returning metadata with timestamp: {return_timestamp}")
 
+    # Title is NOT included in metadata by default, exactly like engine-bench
+    # This is the key difference in approach that was causing issues
+
+    # Debug log the structure of top_nodes to identify any issues
+    if "top_nodes" in metadata:
+        logging.info(f"DEBUG: top_nodes structure: {type(metadata['top_nodes'])}")
+        for i, node in enumerate(metadata["top_nodes"]):
+            logging.info(f"DEBUG: top_node[{i}] = {type(node)} - {node}")
+    else:
+        logging.info("DEBUG: top_nodes not in metadata")
+
+    logging.info(f"Returning metadata with keys: {list(metadata.keys())}")
 
     # Node Uptime Statistics (if historical data available)
     if historical_data and historical_data.get("uptime"):
@@ -892,7 +901,10 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         "timestamp": datetime.now().isoformat(),
         "node_count": len(report),
         "failing_nodes": len(benchmark_data.get("failing_nodes", {})),
-        "top_nodes": [node for node, _ in sorted_scores[:5]] if sorted_scores else [],
+        "top_nodes": [
+            {"url": node, "rank": i + 1}
+            for i, (node, _) in enumerate(sorted_scores[:5])
+        ] if sorted_scores else [],
     }
 
     # Conclusion (standardized)
@@ -918,6 +930,10 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         with open(output_file, "w") as f:
             f.write(markdown_content)
         logging.info(f"Markdown saved to {output_file}")
+
+    # Simple return like engine-bench - no special handling for title here
+    # The title will be added later in generate_post or the CLI
+    logging.info(f"Returning metadata with keys: {list(metadata.keys())}")
 
     return markdown_content, metadata
 
@@ -959,6 +975,14 @@ def generate_post(output_file="benchmark_post.md", db_path="benchmark_history.db
             content, metadata = generate_markdown(
                 benchmark_data, output_file, historical_data, days=days
             )
+            # Debug what was received
+            logging.info(f"FINAL-DEBUG: generate_post received metadata type: {type(metadata)}")
+            logging.info(
+                f"FINAL-DEBUG: generate_post received metadata keys: {metadata.keys() if isinstance(metadata, dict) else 'NOT A DICT!'}"
+            )
+            logging.info(
+                f"FINAL-DEBUG: generate_post received metadata title: '{metadata.get('title', 'NOT FOUND')}' if isinstance(metadata, dict) else 'NO TITLE'"
+            )
         except Exception as e:
             import traceback
 
@@ -966,9 +990,10 @@ def generate_post(output_file="benchmark_post.md", db_path="benchmark_history.db
             logging.error(traceback.format_exc())
             return None, None
 
-        # Fail if 'title' is missing, matching engine-bench behavior
-        if metadata is None or "title" not in metadata:
-            logging.error("generate_post: Metadata missing 'title' key, aborting post generation.")
+        # In engine-bench, there's no check for title here
+        # The title is added by the CLI script instead
+        if metadata is None:
+            logging.error("generate_post: Metadata is None, cannot proceed")
             return None, None
         return content, metadata
     except Exception as e:

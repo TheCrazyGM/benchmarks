@@ -1,16 +1,18 @@
 #!/usr/bin/env python
+"""Generate a benchmark post from the latest benchmark data and optionally publish it to Hive."""
 
 import argparse
+import json
 import logging
 import os
 import re
-import sys
 from datetime import datetime
+from pathlib import Path
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # Load environment variables
 
+from hive_bench import __version__
 from hive_bench.blockchain import post_to_hive
-from hive_bench.database import get_project_root
 from hive_bench.post_generation import generate_post
 
 
@@ -18,120 +20,162 @@ def generate_permlink(title, date_str):
     """Generate a standardized permlink from title and date."""
     title_slug = title.lower().replace(" ", "-").replace("/", "-")
     title_slug = re.sub(r"[^a-z0-9-]", "", title_slug)
-    return f"{date_str}-{title_slug}"
+    return f"{date_str.replace('-', '')}-{title_slug}"
+
+
+def get_project_root() -> Path:
+    """Get the absolute path to the project root directory."""
+    current_file = Path(__file__).resolve()
+    # Go up three levels from src/hive_bench/cli/generate_post.py to reach project root
+    return current_file.parent.parent.parent.parent
+
+
+def load_post_content(markdown_path):
+    """Load post content from markdown file.
+
+    Args:
+        markdown_path (str): Path to the markdown file containing post content
+
+    Returns:
+        str: Post content
+    """
+    if not os.path.isabs(markdown_path):
+        markdown_path = os.path.join(get_project_root(), markdown_path)
+
+    if not os.path.exists(markdown_path):
+        logging.error(f"Post content file not found at {markdown_path}")
+        return None
+
+    try:
+        with open(markdown_path, "r") as f:
+            return f.read()
+    except Exception as e:
+        logging.error(f"Error reading post content: {e}")
+        return None
 
 
 def main():
-    # Load environment variables from .env file
-    load_dotenv()
-    # Set up argument parsing
-    parser = argparse.ArgumentParser(description="Generate a markdown post from benchmark results")
-    parser.add_argument(
-        "-o",
-        "--output",
-        default="hive_benchmark_post.md",
-        help="Path to save the markdown post (default: hive_benchmark_post.md)",
-    )
-    parser.add_argument(
-        "-d",
-        "--db",
-        default="hive_benchmark_history.db",
-        help="Path to the SQLite database file (default: hive_benchmark_history.db)",
-    )
-    parser.add_argument(
-        "-j",
-        "--json",
-        default="hive_benchmark_metadata.json",
-        help="Path to save the post metadata JSON (default: hive_benchmark_metadata.json)",
-    )
-    parser.add_argument(
-        "--days",
-        type=int,
-        default=7,
-        help="Number of days of historical data to include (default: 7)",
-    )
-    parser.add_argument("-p", "--publish", action="store_true", help="Publish the post to Hive")
-    parser.add_argument(
-        "-a", "--author", help="Hive account name to post from (or set HIVE_ACCOUNT env var)"
-    )
-    parser.add_argument(
-        "-k", "--key", help="Hive posting key for the account (or set POSTING_WIF env var)"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Don't actually post to Hive, just show what would be posted",
-    )
-    parser.add_argument(
-        "--permlink", help="Custom permlink for the post (default: auto-generated from title)"
-    )
-    parser.add_argument("--community", help="Community to post to (optional)")
-    parser.add_argument(
-        "--tags",
-        help="Comma-separated list of tags (default: hive,benchmark,nodes,api,performance)",
-    )
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
-    args = parser.parse_args()
-    # Configure logging
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
-    # Warn if DB missing
-    if not os.path.exists(args.db):
-        logging.warning(f"Database '{args.db}' not found. Starting fresh without history.")
-    # Execute generation and optional publish
     try:
-        # Use project root for relative output paths (like engine-bench)
-        output_path = args.output
-        if not os.path.isabs(output_path):
-            output_path = os.path.join(get_project_root(), output_path)
+        # Load environment variables from .env file
+        load_dotenv()
 
-        content, metadata = generate_post(output_file=output_path, db_path=args.db, days=args.days)
-        if not content or metadata is None:
-            logging.error("Post generation failed; no content or metadata.")
+        # Set up argument parsing
+        parser = argparse.ArgumentParser(description="Generate a markdown post from benchmark results")
+        parser.add_argument("-o", "--output", default="hive_benchmark_post.md", help="Path to save the markdown post (default: hive_benchmark_post.md)")
+        parser.add_argument("-d", "--db", default="hive_benchmark_history.db", help="Path to the SQLite database file (default: hive_benchmark_history.db)")
+        parser.add_argument("-j", "--json", default="hive_benchmark_metadata.json", help="Path to save the post metadata JSON (default: hive_benchmark_metadata.json)")
+        parser.add_argument("--days", type=int, default=7, help="Number of days of historical data to include (default: 7)")
+        parser.add_argument("-p", "--publish", action="store_true", help="Publish the post to Hive")
+        parser.add_argument("-a", "--account", help="Hive account name to post from")
+        parser.add_argument("-k", "--key", help="Hive posting key for the account")
+        parser.add_argument("--dry-run", action="store_true", help="Don't actually post to Hive, just show what would be posted")
+        parser.add_argument("--permlink", help="Custom permlink for the post (default: auto-generated from title)")
+        parser.add_argument("--community", help="Community to post to (optional)")
+        parser.add_argument("--tags", help="Comma-separated list of tags (default: hive,benchmark,nodes,api,performance)")
+        parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
+        parser.add_argument("--version", action="version", version=f"hive-bench {__version__}")
+        args = parser.parse_args()
+
+        # Configure logging
+        log_level = logging.DEBUG if args.verbose else logging.INFO
+        logging.basicConfig(level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+        # Generate post
+        logging.info(f"Generating benchmark post from database {args.db}")
+        content, metadata = generate_post(output_file=args.output, db_path=args.db, days=args.days)
+
+        if metadata is None or content is None:
+            logging.error("Post generation failed; no metadata/content returned.")
+            print("Failed to generate post content or metadata. See earlier errors for details.")
             return 1
-        # Save metadata
-        import json
 
-        meta_path = args.json
-        if not os.path.isabs(meta_path):
-            meta_path = os.path.join(get_project_root(), meta_path)
-        with open(meta_path, "w") as mf:
-            json.dump(metadata, mf, indent=2)
-        logging.info(f"Metadata saved to {meta_path}")
+        # Add title to metadata (just like engine-bench)
+        formatted_date = datetime.now().strftime("%d/%m/%Y")
+        metadata["title"] = f"Full Hive API Node Update - ({formatted_date})"
+        logging.info(f"Added title to metadata: '{metadata['title']}'")
+
+        # Save metadata to JSON file
+        json_path = args.json
+        if not os.path.isabs(json_path):
+            json_path = os.path.join(get_project_root(), json_path)
+
+        with open(json_path, "w") as f:
+            json.dump(metadata, f, indent=2)
+        logging.info(f"Metadata saved to {json_path}")
+
         # Print summary
-        print(
-            f"Generated post: {output_path}\nMetadata: {meta_path}\nDays: {args.days}\nNodes: {metadata.get('node_count')} (failures: {metadata.get('failing_nodes')})"
-        )
-        # Publish
+        print("\nPost Generation Summary:")
+        print(f"  Post saved to: {args.output}")
+        print(f"  Metadata saved to: {json_path}")
+        print(f"  Included {args.days} days of historical data")
+        print(f"  Working nodes: {metadata.get('node_count', 'N/A')}")
+        print(f"  Failing nodes: {metadata.get('failing_nodes', 'N/A')}")
+        print("\nTop nodes from benchmark:")
+        if "top_nodes" in metadata and metadata["top_nodes"]:
+            for i, node_data in enumerate(metadata["top_nodes"], 1):
+                if isinstance(node_data, dict) and "url" in node_data:
+                    print(f"    {i}. {node_data['url']} (rank: {node_data.get('rank', 'N/A')})")
+                else:
+                    print(f"    {i}. {node_data}  # unexpected format")
+        else:
+            print("    No top nodes available.")
+
+        # Publish to Hive if requested
         if args.publish:
-            account = args.author or os.environ.get("HIVE_ACCOUNT")
+            # Get account and key from environment if not provided as args
+            # Load the post content if needed
+            if not content:
+                content = load_post_content(args.output)
+                if not content:
+                    logging.error(f"Failed to load post content from {args.output}")
+                    return 1
+
+            account = args.account or os.environ.get("HIVE_ACCOUNT")
             key = args.key or os.environ.get("POSTING_WIF")
-            if not account or (not key and not args.dry_run):
-                logging.error("Missing account or key for publish.")
+
+            if not account:
+                logging.error("No Hive account specified. Use --account or set HIVE_ACCOUNT environment variable.")
                 return 1
-            tags = (
-                [t.strip() for t in args.tags.split(",")]
-                if args.tags
-                else ["hive", "benchmark", "nodes", "api", "performance"]
-            )
-            if "title" not in metadata:
-                logging.error("Metadata is missing the 'title' key. Metadata: %s", metadata)
-                print("ERROR: Metadata is missing the 'title' key. Cannot generate permlink or post.")
+
+            if not key and not args.dry_run:
+                logging.error("No Hive posting key specified. Use --key or set POSTING_WIF environment variable.")
                 return 1
-            permlink = args.permlink or generate_permlink(
-                metadata["title"], datetime.now().strftime("%Y%m%d")
-            )
-            os.environ.update(
-                {"HIVE_ACCOUNT": account, "POSTING_WIF": key or "", "DRY_RUN": str(args.dry_run)}
-            )
-            post_to_hive(
-                content=content,
-                metadata=metadata,
-                permlink=permlink,
-                tags=tags,
-                community=args.community,
-            )
-            print(f"Published to Hive as @{account}/{permlink}")
+
+            # Prepare post metadata
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            # Title already added earlier
+
+            # Standardized permlink generation
+            permlink = args.permlink or generate_permlink(metadata["title"], date_str)
+
+            # Get default tags
+            tags = ["hive", "benchmark", "nodes", "performance", "api"]
+            if args.tags:
+                tags = [t.strip() for t in args.tags.split(",")]
+
+            # Post to Hive
+            logging.info(f"Publishing post to Hive as @{account}...")
+            try:
+                # Set DRY_RUN environment variable for the blockchain module
+                if args.dry_run:
+                    os.environ["DRY_RUN"] = "True"
+
+                # Set HIVE_ACCOUNT and POSTING_WIF environment variables
+                os.environ["HIVE_ACCOUNT"] = account
+                if key:
+                    os.environ["POSTING_WIF"] = key
+
+                # Post to Hive using the blockchain module
+                post_to_hive(content=content, metadata=metadata, permlink=permlink, tags=tags, community=args.community)
+
+                # Print success message
+                print("\nSuccessfully posted to Hive!")
+                print(f"View your post at: https://peakd.com/@{account}/{permlink}")
+
+            except Exception as e:
+                logging.error(f"Failed to post to Hive: {e}")
+                print(f"\nFailed to post to Hive: {e}")
+
         return 0
     except Exception as err:
         logging.error(f"Error in CLI generate_post: {err}")
@@ -139,4 +183,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
