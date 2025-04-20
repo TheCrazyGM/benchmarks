@@ -282,7 +282,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
     # Create markdown content list
     markdown = []
 
-    # Header
+    # Header (standardized)
     markdown.append(f"# Full Hive-Engine API Node Update - ({formatted_date})\n")
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     markdown.append(f"{current_time} (UTC)")
@@ -293,15 +293,14 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         "@nectarflower provides daily updates about the state of all available full API node servers for Hive-Engine."
     )
     markdown.append(
-        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/nectarflower-bench).\n"
+        "More information about nectarflower can be found in the [github repository](https://github.com/thecrazygm/benchmarks).\n"
     )
 
-    # Failing nodes section
+    # Failing nodes section (standardized)
     markdown.append("## List of failing nodes\n")
     markdown.append(
         "This table includes a list of all nodes which were not able to answer to a `getStatus` API call within the specified timeout (default: 30 seconds).\n"
     )
-
     markdown.append("|node | error |")
     markdown.append("| --- | --- |")
 
@@ -312,12 +311,11 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
     markdown.append("\n")
 
-    # Working nodes section - config time
+    # Working nodes section (standardized)
     markdown.append("## List of working nodes (At least once)\n")
     markdown.append(
         "This table includes all nodes which were able to answer a `getStatus` call within the timeout. The achieved mean duration values are shown. The returned SSCnodeVersion is also shown.\n"
     )
-
     markdown.append("|node |  mean time [s] | SSCnodeVersion  |")
     markdown.append("| --- | --- | ---  |")
 
@@ -594,7 +592,7 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
 
         markdown.append("")
 
-    # Conclusion
+    # Conclusion (standardized)
     markdown.append("## Conclusion")
     markdown.append("")
     markdown.append(
