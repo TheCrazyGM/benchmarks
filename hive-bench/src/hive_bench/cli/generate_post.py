@@ -60,25 +60,58 @@ def main():
         load_dotenv()
 
         # Set up argument parsing
-        parser = argparse.ArgumentParser(description="Generate a markdown post from benchmark results")
-        parser.add_argument("-o", "--output", default="hive_benchmark_post.md", help="Path to save the markdown post (default: hive_benchmark_post.md)")
-        parser.add_argument("-d", "--db", default="hive_benchmark_history.db", help="Path to the SQLite database file (default: hive_benchmark_history.db)")
-        parser.add_argument("-j", "--json", default="hive_benchmark_metadata.json", help="Path to save the post metadata JSON (default: hive_benchmark_metadata.json)")
-        parser.add_argument("--days", type=int, default=7, help="Number of days of historical data to include (default: 7)")
+        parser = argparse.ArgumentParser(
+            description="Generate a markdown post from benchmark results"
+        )
+        parser.add_argument(
+            "-o",
+            "--output",
+            default="hive_benchmark_post.md",
+            help="Path to save the markdown post (default: hive_benchmark_post.md)",
+        )
+        parser.add_argument(
+            "-d",
+            "--db",
+            default="hive_benchmark_history.db",
+            help="Path to the SQLite database file (default: hive_benchmark_history.db)",
+        )
+        parser.add_argument(
+            "-j",
+            "--json",
+            default="hive_benchmark_metadata.json",
+            help="Path to save the post metadata JSON (default: hive_benchmark_metadata.json)",
+        )
+        parser.add_argument(
+            "--days",
+            type=int,
+            default=7,
+            help="Number of days of historical data to include (default: 7)",
+        )
         parser.add_argument("-p", "--publish", action="store_true", help="Publish the post to Hive")
         parser.add_argument("-a", "--account", help="Hive account name to post from")
         parser.add_argument("-k", "--key", help="Hive posting key for the account")
-        parser.add_argument("--dry-run", action="store_true", help="Don't actually post to Hive, just show what would be posted")
-        parser.add_argument("--permlink", help="Custom permlink for the post (default: auto-generated from title)")
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Don't actually post to Hive, just show what would be posted",
+        )
+        parser.add_argument(
+            "--permlink", help="Custom permlink for the post (default: auto-generated from title)"
+        )
         parser.add_argument("--community", help="Community to post to (optional)")
-        parser.add_argument("--tags", help="Comma-separated list of tags (default: hive,benchmark,nodes,api,performance)")
+        parser.add_argument(
+            "--tags",
+            help="Comma-separated list of tags (default: hive,benchmark,nodes,api,performance)",
+        )
         parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
         parser.add_argument("--version", action="version", version=f"hive-bench {__version__}")
         args = parser.parse_args()
 
         # Configure logging
         log_level = logging.DEBUG if args.verbose else logging.INFO
-        logging.basicConfig(level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        logging.basicConfig(
+            level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
 
         # Generate post
         logging.info(f"Generating benchmark post from database {args.db}")
@@ -131,11 +164,15 @@ def main():
             key = args.key or os.environ.get("POSTING_WIF")
 
             if not account:
-                logging.error("No Hive account specified. Use --account or set HIVE_ACCOUNT environment variable.")
+                logging.error(
+                    "No Hive account specified. Use --account or set HIVE_ACCOUNT environment variable."
+                )
                 return 1
 
             if not key and not args.dry_run:
-                logging.error("No Hive posting key specified. Use --key or set POSTING_WIF environment variable.")
+                logging.error(
+                    "No Hive posting key specified. Use --key or set POSTING_WIF environment variable."
+                )
                 return 1
 
             # Prepare post metadata
@@ -163,7 +200,13 @@ def main():
                     os.environ["POSTING_WIF"] = key
 
                 # Post to Hive using the blockchain module
-                post_to_hive(content=content, metadata=metadata, permlink=permlink, tags=tags, community=args.community)
+                post_to_hive(
+                    content=content,
+                    metadata=metadata,
+                    permlink=permlink,
+                    tags=tags,
+                    community=args.community,
+                )
 
                 # Print success message
                 print("\nSuccessfully posted to Hive!")

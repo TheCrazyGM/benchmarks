@@ -895,10 +895,9 @@ def generate_markdown(benchmark_data, output_file=None, historical_data=None, da
         "timestamp": datetime.now().isoformat(),
         "node_count": len(report),
         "failing_nodes": len(benchmark_data.get("failing_nodes", {})),
-        "top_nodes": [
-            {"url": node, "rank": i + 1}
-            for i, (node, _) in enumerate(sorted_scores[:5])
-        ] if sorted_scores else [],
+        "top_nodes": [{"url": node, "rank": i + 1} for i, (node, _) in enumerate(sorted_scores[:5])]
+        if sorted_scores
+        else [],
     }
 
     # Conclusion (standardized)

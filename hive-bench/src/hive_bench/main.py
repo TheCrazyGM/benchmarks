@@ -209,11 +209,36 @@ def run_benchmarks(
                 node_data[node][ranking_test]["rank"] = rank
                 rank += 1
 
+    # Sort nodes by their config rank to ensure consistent ordering in the report
+    # Create a dictionary to map ranks to nodes for precise ordering
+    nodes_by_rank = {}
+
+    # First, collect all nodes with valid config ranks
+    for node, data in node_data.items():
+        if data["config"]["ok"] and data["config"]["rank"] > 0:
+            rank = data["config"]["rank"]
+            nodes_by_rank[rank] = data
+
+    # Create a sorted list of nodes
+    sorted_node_data = []
+
+    # Add nodes in order of rank (1, 2, 3, etc.)
+    for rank in sorted(nodes_by_rank.keys()):
+        sorted_node_data.append(nodes_by_rank[rank])
+
+    # Add nodes without valid config ranks at the end
+    for node, data in node_data.items():
+        if not data["config"]["ok"] or data["config"]["rank"] <= 0:
+            sorted_node_data.append(data)
+
+    # Get the list of nodes in the same order as the sorted report
+    sorted_node_urls = [node["node"] for node in sorted_node_data if node["node"] in working_nodes]
+
     # Build the final report structure
     report = {
-        "nodes": working_nodes,
+        "nodes": sorted_node_urls,  # Use the sorted list of node URLs
         "failing_nodes": failing_nodes,
-        "report": list(node_data.values()),
+        "report": sorted_node_data,  # Use the explicitly sorted list instead of dict.values()
         "parameter": {
             "num_retries": num_retries,
             "num_retries_call": num_retries_call,
