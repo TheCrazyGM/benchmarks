@@ -113,9 +113,51 @@ def main():
             if args.output:
                 output_path = Path(args.output)
                 if report_path != output_path:  # Only save if it's a different file
+                    # Apply sorting logic to ensure nodes are in correct order by total score
+                    if "report" in report and isinstance(report["report"], list):
+                        # Sort nodes by their total score (lower is better)
+                        nodes_by_score = {}
+
+                        # First, collect all nodes with valid scores
+                        for node in report["report"]:
+                            if "total_score" in node:
+                                score = node["total_score"]
+                                if score not in nodes_by_score:
+                                    nodes_by_score[score] = []
+                                nodes_by_score[score].append(node)
+
+                        # Create a sorted list of nodes
+                        sorted_nodes = []
+
+                        # Add nodes in order of score (lower is better)
+                        for score in sorted(nodes_by_score.keys()):
+                            # If multiple nodes have the same score, sort them by node URL for consistency
+                            for node in sorted(nodes_by_score[score], key=lambda x: x["node"]):
+                                sorted_nodes.append(node)
+
+                        # Add nodes without valid scores at the end
+                        for node in report["report"]:
+                            if "total_score" not in node:
+                                sorted_nodes.append(node)
+
+                        # Update the report with sorted nodes
+                        report["report"] = sorted_nodes
+
+                        # Also sort the nodes list to match the report order
+                        sorted_node_urls = [
+                            node["node"]
+                            for node in sorted_nodes
+                            if node["node"] in report.get("nodes", [])
+                        ]
+                        report["nodes"] = sorted_node_urls
+
+                        logging.info(
+                            "Applied sorting to ensure nodes are in benchmark order (best score first)"
+                        )
+
                     with open(output_path, "w") as f:
                         json.dump(report, f, indent=2)
-                    logging.info(f"Copied report to {output_path}")
+                    logging.info(f"Sorted report saved to {output_path}")
                 else:
                     output_path = report_path
             else:

@@ -258,12 +258,41 @@ def run_benchmarks(
             data["total_score"] = 999  # Very high score for nodes that didn't complete any tests
             data["tests_completed"] = 0
 
-    # Create report structure
-    report = list(node_data.values())
+    # Sort nodes by their total score (lower is better)
+    # Create a dictionary to map scores to nodes for precise ordering
+    nodes_by_score = {}
+
+    # First, collect all nodes with valid scores
+    for node, data in node_data.items():
+        if "total_score" in data:
+            score = data["total_score"]
+            if score not in nodes_by_score:
+                nodes_by_score[score] = []
+            nodes_by_score[score].append(data)
+
+    # Create a sorted list of nodes
+    sorted_node_data = []
+
+    # Add nodes in order of score (lower is better)
+    for score in sorted(nodes_by_score.keys()):
+        # If multiple nodes have the same score, sort them by node URL for consistency
+        for node in sorted(nodes_by_score[score], key=lambda x: x["node"]):
+            sorted_node_data.append(node)
+
+    # Add nodes without valid scores at the end
+    for node, data in node_data.items():
+        if "total_score" not in data:
+            sorted_node_data.append(data)
+
+    # Create report structure using the sorted nodes
+    report = sorted_node_data
+
+    # Get the list of nodes in the same order as the sorted report
+    sorted_node_urls = [node["node"] for node in report if node["node"] in working_nodes]
 
     # Create benchmark report data structure
     report_data = {
-        "nodes": working_nodes,
+        "nodes": sorted_node_urls,  # Use the sorted list of node URLs
         "failing_nodes": failing_nodes,
         "report": report,
         "parameter": {
