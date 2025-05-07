@@ -272,6 +272,16 @@ def run_benchmarks(
                 "config": {"data": ["access_time"]},
                 "latency": {"data": ["avg_latency"]},
             },
+            "weighted_scoring": {
+                "weights": {
+                    "token": 0.25,
+                    "contract": 0.20,
+                    "account_history": 0.20,
+                    "config": 0.10,
+                    "latency": 0.25,
+                },
+                "description": "Nodes are ordered by a weighted scoring system prioritizing real-world performance factors",
+            },
         },
     }
 
