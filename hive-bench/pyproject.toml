@@ -1,6 +1,6 @@
 [project]
 name = "hive-bench"
-version = "0.2.5"
+version = "0.2.6"
 description = "Benchmarking tool for Hive nodes using hive-nectar"
 readme = "README.md"
 requires-python = ">=3.13"

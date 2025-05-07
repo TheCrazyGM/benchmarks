@@ -136,3 +136,111 @@ def make_sort_key(current_test):
         return 0
 
     return sort_key
+
+
+def calculate_weighted_node_score(node_data, all_nodes_data=None):
+    """Calculate a weighted score for a node based on real-world performance importance.
+
+    This function applies weights to different benchmark results to provide a more
+    realistic assessment of node performance for actual usage scenarios.
+
+    Args:
+        node_data (dict): The node data dictionary containing benchmark results
+        all_nodes_data (list, optional): List of all node data for normalized scoring
+
+    Returns:
+        float: A weighted score where higher is better
+    """
+    # Define weights for each test (should sum to 1.0)
+    weights = {
+        "block": 0.30,  # Block retrieval is critical for most operations
+        "history": 0.25,  # History retrieval is important for many apps
+        "apicall": 0.25,  # API call performance matters for user experience
+        "config": 0.05,  # Config is least important for everyday usage
+        "block_diff": 0.15,  # Block difference shows node synchronization status
+    }
+
+    # Base score starts at 0
+    score = 0
+
+    # Track if any critical services failed
+    critical_service_failed = False
+
+    # Find maximum values for normalization if all_nodes_data is provided
+    max_values = {
+        "block": {"count": 0},
+        "history": {"count": 0},
+    }
+
+    if all_nodes_data:
+        for node in all_nodes_data:
+            # Find max block count
+            if node["block"].get("ok", False):
+                max_values["block"]["count"] = max(
+                    max_values["block"]["count"], node["block"].get("count", 0)
+                )
+            # Find max history count
+            if node["history"].get("ok", False):
+                max_values["history"]["count"] = max(
+                    max_values["history"]["count"], node["history"].get("count", 0)
+                )
+
+    # Calculate normalized score for each test
+    for test, weight in weights.items():
+        test_data = node_data.get(test, {})
+
+        # Skip tests that failed or don't have valid data
+        if not test_data.get("ok", False):
+            # Mark critical service failures
+            if test in ["block", "history", "apicall"]:
+                critical_service_failed = True
+            continue
+
+        # Calculate normalized score based on test type
+        if test == "block":
+            # For block, higher count is better
+            max_count = max_values["block"]["count"] if all_nodes_data else 1
+            if max_count > 0:
+                ratio = test_data.get("count", 0) / max_count
+                test_score = ratio * 100  # Scale to 0-100
+            else:
+                test_score = 0
+        elif test == "history":
+            # For history, higher count is better
+            max_count = max_values["history"]["count"] if all_nodes_data else 1
+            if max_count > 0:
+                ratio = test_data.get("count", 0) / max_count
+                test_score = ratio * 100  # Scale to 0-100
+            else:
+                test_score = 0
+        elif test == "apicall" or test == "config":
+            # For API call and config, lower access time is better
+            # Invert the access time so smaller times get higher scores
+            access_time = test_data.get("access_time", 30)
+            test_score = 100 * (1 - min(access_time / 2, 1))  # Scale 0-2s to 100-0
+        elif test == "block_diff":
+            # For block difference, lower head delay is better
+            head_delay = test_data.get("head_delay", 10)
+            test_score = 100 * (1 - min(head_delay / 3, 1))  # Scale 0-3s to 100-0
+
+        # Apply weight to test score
+        score += test_score * weight
+
+    # Apply version bonus (newer versions generally better)
+    version = node_data.get("version", "0.0.0")
+    try:
+        # Try to parse version (e.g. "1.27.11")
+        version_parts = [int(p) for p in version.split(".")]
+        # Small bonus for newer versions (up to 5%)
+        version_bonus = min(
+            5, (version_parts[0] * 100 + version_parts[1] * 10 + version_parts[2]) / 200
+        )
+        score += version_bonus  # Up to 1 point bonus
+    except (ValueError, IndexError):
+        pass
+
+    # Heavily penalize nodes with critical service failures
+    if critical_service_failed:
+        score *= 0.5
+
+    return score

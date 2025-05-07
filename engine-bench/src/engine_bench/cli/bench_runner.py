@@ -113,34 +113,38 @@ def main():
             if args.output:
                 output_path = Path(args.output)
                 if report_path != output_path:  # Only save if it's a different file
-                    # Apply sorting logic to ensure nodes are in correct order by total score
+                    # Apply weighted scoring logic to ensure nodes are sorted by real-world performance
                     if "report" in report and isinstance(report["report"], list):
-                        # Sort nodes by their total score (lower is better)
-                        nodes_by_score = {}
+                        from engine_bench.utils import calculate_weighted_node_score
 
-                        # First, collect all nodes with valid scores
-                        for node in report["report"]:
-                            if "total_score" in node:
-                                score = node["total_score"]
-                                if score not in nodes_by_score:
-                                    nodes_by_score[score] = []
-                                nodes_by_score[score].append(node)
+                        all_node_data = report["report"]
 
-                        # Create a sorted list of nodes
-                        sorted_nodes = []
+                        # Calculate weighted scores for each node
+                        for node_data in all_node_data:
+                            weighted_score = calculate_weighted_node_score(node_data, all_node_data)
+                            # Add weighted score to node data for future reference
+                            node_data["weighted_score"] = round(weighted_score, 2)
+                            # Keep track of how many tests were completed
+                            node_data["tests_completed"] = sum(
+                                1
+                                for test_type in [
+                                    "token",
+                                    "contract",
+                                    "account_history",
+                                    "config",
+                                    "latency",
+                                ]
+                                if node_data[test_type].get("ok", False)
+                            )
 
-                        # Add nodes in order of score (lower is better)
-                        for score in sorted(nodes_by_score.keys()):
-                            # If multiple nodes have the same score, sort them by node URL for consistency
-                            for node in sorted(nodes_by_score[score], key=lambda x: x["node"]):
-                                sorted_nodes.append(node)
+                        # Create a sorted list of nodes by weighted score (higher is better)
+                        sorted_nodes = sorted(
+                            all_node_data,
+                            key=lambda x: (x.get("weighted_score", 0), x.get("node", "")),
+                            reverse=True,  # Higher score is better with weighted system
+                        )
 
-                        # Add nodes without valid scores at the end
-                        for node in report["report"]:
-                            if "total_score" not in node:
-                                sorted_nodes.append(node)
-
-                        # Update the report with sorted nodes
+                        # Update the report with the better sorted nodes
                         report["report"] = sorted_nodes
 
                         # Also sort the nodes list to match the report order
@@ -151,8 +155,21 @@ def main():
                         ]
                         report["nodes"] = sorted_node_urls
 
+                        # Add the weighted scoring methodology to the parameters if not already there
+                        if "parameter" in report and "weighted_scoring" not in report["parameter"]:
+                            report["parameter"]["weighted_scoring"] = {
+                                "weights": {
+                                    "token": 0.25,
+                                    "contract": 0.20,
+                                    "account_history": 0.20,
+                                    "latency": 0.25,
+                                    "config": 0.10,
+                                },
+                                "description": "Nodes are ordered by a weighted scoring system prioritizing real-world performance factors",
+                            }
+
                         logging.info(
-                            "Applied sorting to ensure nodes are in benchmark order (best score first)"
+                            "Applied weighted scoring to ensure nodes are ordered by real-world performance importance"
                         )
 
                     with open(output_path, "w") as f:
@@ -214,36 +231,51 @@ def main():
     )
 
     if report["nodes"]:
-        print("\nTop performing nodes:")
-        # Create a dictionary of nodes with their scores and tests completed
-        node_scores = {}
-        node_tests_completed = {}
-        # Process the report data
+        # Create dictionaries for weighted scores and test completion
+        weighted_scores = {}
+        tests_completed = {}
+
+        # Process the report data to find weighted scores
         for node_data in report["report"]:
-            # Check if node_data is a dictionary
             if isinstance(node_data, dict) and "node" in node_data:
                 node_url = node_data["node"]
-                score = node_data.get(
-                    "total_score", 999
-                )  # Default to high score (worse) if not found
-                tests_completed = node_data.get("tests_completed", 0)
-                node_scores[node_url] = score
-                node_tests_completed[node_url] = tests_completed
-        # If no scores were found in the report data, try using the nodes list as a fallback
-        if not node_scores and isinstance(report["nodes"], list):
+                # Use weighted_score if available, otherwise calculate it
+                if "weighted_score" in node_data:
+                    weighted_scores[node_url] = node_data["weighted_score"]
+                    tests_completed[node_url] = node_data.get("tests_completed", 0)
+                else:
+                    # If no weighted score in report, default to 0
+                    weighted_scores[node_url] = 0
+                    # Count completed tests
+                    tests_completed[node_url] = sum(
+                        1
+                        for test_type in [
+                            "token",
+                            "contract",
+                            "account_history",
+                            "config",
+                            "latency",
+                        ]
+                        if node_data.get(test_type, {}).get("ok", False)
+                    )
+
+        # If no weighted scores at all, try to get them from nodes list
+        if not weighted_scores and isinstance(report["nodes"], list):
             for node_url in report["nodes"]:
                 if isinstance(node_url, str):
-                    node_scores[node_url] = 999  # Default high score
-                    node_tests_completed[node_url] = 0
+                    weighted_scores[node_url] = 0  # Default score
+                    tests_completed[node_url] = 0
                     logging.debug(f"Using fallback for node: {node_url}")
-        # Print top 5 nodes or all if fewer than 5 (lower score is better)
-        print("\nTop performing nodes (lower score is better):")
-        # Sort by score (ascending - lower is better)
-        sorted_nodes = sorted(node_scores.items(), key=lambda x: x[1])[:5]
+
+        # Print top 5 nodes by weighted score (higher is better)
+        print("\nTop performing nodes by weighted score (higher is better):")
+        # Sort by weighted score (descending - higher is better)
+        sorted_nodes = sorted(weighted_scores.items(), key=lambda x: x[1], reverse=True)[:5]
+
         if sorted_nodes:
             for i, (node, score) in enumerate(sorted_nodes):
-                tests = node_tests_completed.get(node, 0)
-                print(f"{i + 1}. {node} (score: {score}, tests completed: {tests}/5)")
+                tests = tests_completed.get(node, 0)
+                print(f"{i + 1}. {node} (weighted score: {score:.2f}, tests completed: {tests}/5)")
         else:
             print("No node performance data available.")
 

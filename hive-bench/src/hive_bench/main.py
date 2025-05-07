@@ -279,6 +279,60 @@ def main():
     # Run all benchmarks
     report = run_benchmarks()
 
+    # Calculate weighted scores for each node based on real-world importance
+    from hive_bench.utils import calculate_weighted_node_score
+
+    # First, collect all node data for normalization
+    all_node_data = report["report"]
+
+    # Calculate weighted scores and add to node data
+    node_scores = {}
+    for node_data in all_node_data:
+        weighted_score = calculate_weighted_node_score(node_data, all_node_data)
+        node_scores[node_data["node"]] = weighted_score
+        # Add weighted score to node data for future reference
+        node_data["weighted_score"] = round(weighted_score, 2)
+
+    # Create a better sorted list of nodes based on weighted scores
+    better_sorted_nodes = [
+        node
+        for node, _ in sorted(node_scores.items(), key=lambda x: x[1], reverse=True)
+        if node in report["nodes"]
+    ]
+
+    # Update the report with the better sorted node list
+    report["nodes"] = better_sorted_nodes
+
+    # Re-sort the report data based on the new ordering
+    sorted_report_data = []
+
+    # First add nodes in the better order
+    for node in better_sorted_nodes:
+        for node_data in all_node_data:
+            if node_data["node"] == node:
+                sorted_report_data.append(node_data)
+                break
+
+    # Then add any remaining nodes that weren't in the working nodes list
+    for node_data in all_node_data:
+        if node_data["node"] not in better_sorted_nodes:
+            sorted_report_data.append(node_data)
+
+    # Update the report with the better sorted data
+    report["report"] = sorted_report_data
+
+    # Add the weighted scoring methodology to the parameters
+    report["parameter"]["weighted_scoring"] = {
+        "weights": {
+            "block": 0.30,
+            "history": 0.25,
+            "apicall": 0.25,
+            "config": 0.05,
+            "block_diff": 0.15,
+        },
+        "description": "Nodes are ordered by a weighted scoring system prioritizing real-world performance factors",
+    }
+
     # Store benchmark data in the database
     store_benchmark_data_in_db(report)
 
@@ -305,24 +359,55 @@ def main():
         f"Tested {len(report['nodes'])} working nodes and {len(report['failing_nodes'])} failing nodes."
     )
     print("Results have been stored in the database and saved to benchmark_results.json.")
-    print("\nTop 3 nodes by performance:")
+    print("\nTop 3 nodes by performance using weighted real-world scoring:")
 
-    # Create a simple score for each node based on rankings
+    # Calculate weighted scores for each node based on real-world importance
+    from hive_bench.utils import calculate_weighted_node_score
+
+    # First, collect all node data for normalization
+    all_node_data = report["report"]
+
+    # Calculate weighted scores
     node_scores = {}
-    for node_data in report["report"]:
-        score = 0
-        for test in ["block", "history", "apicall", "config", "block_diff"]:
-            test_data = node_data.get(test, {})
-            if test_data.get("ok", False) and test_data.get("rank", -1) > 0:
-                # Lower rank is better, so subtract from a base value
-                score += max(10 - test_data["rank"], 0)
-        node_scores[node_data["node"]] = score
+    for node_data in all_node_data:
+        weighted_score = calculate_weighted_node_score(node_data, all_node_data)
+        node_scores[node_data["node"]] = weighted_score
 
-    # Print top 3 nodes
+    # Create a better sorted list of nodes based on weighted scores
+    better_sorted_nodes = [
+        node
+        for node, _ in sorted(node_scores.items(), key=lambda x: x[1], reverse=True)
+        if node in report["nodes"]
+    ]
+
+    # Update the report with the better sorted node list
+    report["nodes"] = better_sorted_nodes
+
+    # Re-sort the report data based on the new ordering
+    sorted_report_data = []
+
+    # First add nodes in the better order
+    for node in better_sorted_nodes:
+        for node_data in all_node_data:
+            if node_data["node"] == node:
+                sorted_report_data.append(node_data)
+                break
+
+    # Then add any remaining nodes that weren't in the working nodes list
+    for node_data in all_node_data:
+        if node_data["node"] not in better_sorted_nodes:
+            sorted_report_data.append(node_data)
+
+    # Update the report with the better sorted data
+    report["report"] = sorted_report_data
+
+    # Print top 3 nodes with new scoring system
     for i, (node, score) in enumerate(
         sorted(node_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+        if len(node_scores) >= 3
+        else sorted(node_scores.items(), key=lambda x: x[1], reverse=True)
     ):
-        print(f"{i + 1}. {node} (score: {score})")
+        print(f"{i + 1}. {node} (weighted score: {score:.2f})")
 
 
 if __name__ == "__main__":

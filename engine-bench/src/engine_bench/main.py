@@ -220,69 +220,31 @@ def run_benchmarks(
         for i, node in enumerate(nodes_ranked):
             node_data[node["node"]][test_type]["rank"] = i + 1
 
-    # Calculate total score for each node based on rankings
-    test_types = ["token", "contract", "account_history", "config", "latency"]
+    # Calculate weighted scores for nodes based on real-world performance metrics
+    # Higher score is better with this new weighted system
+    from engine_bench.utils import calculate_weighted_node_score
 
-    # First, determine how many nodes participated in each test type
-    max_ranks = {}
-    for test_type in test_types:
-        max_ranks[test_type] = len([n for n in node_data.values() if n[test_type]["ok"]])
+    # Collect all node data for normalization
+    all_node_data = list(node_data.values())
 
-    # Calculate total score for each node
-    # Lower score is better (like a golf score)
-    for node, data in node_data.items():
-        total_score = 0
-        valid_tests = 0
+    # Calculate weighted scores and add to node data
+    for data in all_node_data:
+        weighted_score = calculate_weighted_node_score(data, all_node_data)
+        # Add weighted score to node data for future reference
+        data["weighted_score"] = round(weighted_score, 2)
+        # Keep track of how many tests were completed
+        data["tests_completed"] = sum(
+            1
+            for test_type in ["token", "contract", "account_history", "config", "latency"]
+            if data[test_type]["ok"]
+        )
 
-        for test_type in test_types:
-            if data[test_type]["ok"]:
-                # Get the rank (lower is better)
-                rank = data[test_type].get(
-                    "rank", max_ranks[test_type]
-                )  # Default to worst rank if not ranked
-
-                # Add to total score - normalize by dividing by max rank to give equal weight to each test
-                # Multiply by 100 to get a percentage and make it more readable
-                if max_ranks[test_type] > 0:
-                    score_contribution = (rank / max_ranks[test_type]) * 100
-                    total_score += score_contribution
-                    valid_tests += 1
-
-        # Calculate average score if node participated in at least one test
-        if valid_tests > 0:
-            # Lower score is better (average rank position across all tests)
-            data["total_score"] = round(total_score / valid_tests, 2)
-            # Also store how many tests this node successfully completed
-            data["tests_completed"] = valid_tests
-        else:
-            data["total_score"] = 999  # Very high score for nodes that didn't complete any tests
-            data["tests_completed"] = 0
-
-    # Sort nodes by their total score (lower is better)
-    # Create a dictionary to map scores to nodes for precise ordering
-    nodes_by_score = {}
-
-    # First, collect all nodes with valid scores
-    for node, data in node_data.items():
-        if "total_score" in data:
-            score = data["total_score"]
-            if score not in nodes_by_score:
-                nodes_by_score[score] = []
-            nodes_by_score[score].append(data)
-
-    # Create a sorted list of nodes
-    sorted_node_data = []
-
-    # Add nodes in order of score (lower is better)
-    for score in sorted(nodes_by_score.keys()):
-        # If multiple nodes have the same score, sort them by node URL for consistency
-        for node in sorted(nodes_by_score[score], key=lambda x: x["node"]):
-            sorted_node_data.append(node)
-
-    # Add nodes without valid scores at the end
-    for node, data in node_data.items():
-        if "total_score" not in data:
-            sorted_node_data.append(data)
+    # Create a sorted list of nodes by weighted score (higher is better)
+    sorted_node_data = sorted(
+        all_node_data,
+        key=lambda x: (x.get("weighted_score", 0), x.get("node", "")),
+        reverse=True,  # Higher score is better
+    )
 
     # Create report structure using the sorted nodes
     report = sorted_node_data
@@ -354,6 +316,20 @@ def main():
     print(f"  Duration: {report_data['parameter']['duration']:.2f} seconds")
     print(f"  Working nodes: {len(report_data['nodes'])}")
     print(f"  Failing nodes: {len(report_data['failing_nodes'])}")
+
+    # Display top 5 nodes by weighted score (real-world performance importance)
+    print("\nTop 5 nodes by weighted score (higher is better):")
+    # Sort nodes by weighted score (higher is better)
+    for i, node in enumerate(report_data["nodes"][:5]):
+        # Find the node data
+        for node_data in report_data["report"]:
+            if node_data["node"] == node:
+                weighted_score = node_data.get("weighted_score", 0)
+                tests_completed = node_data.get("tests_completed", 0)
+                print(
+                    f"  {i + 1}. {node} (weighted score: {weighted_score:.2f}, tests completed: {tests_completed}/5)"
+                )
+                break
 
     # Display top 5 nodes for each test type
     test_types = ["token", "contract", "account_history", "config", "latency"]
