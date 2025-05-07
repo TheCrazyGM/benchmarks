@@ -229,6 +229,43 @@ def main():
         logging.error("No report file provided and no benchmarks run.")
         return 1
 
+    # Process weighted scores before updating metadata
+    if report["nodes"] and "report" in report:
+        from hive_bench.utils import calculate_weighted_node_score
+
+        # Make sure all nodes have weighted scores before updating metadata
+        for node_data in report["report"]:
+            if isinstance(node_data, dict) and "node" in node_data:
+                # Calculate weighted score if not already present
+                if "weighted_score" not in node_data:
+                    score = calculate_weighted_node_score(node_data, report["report"])
+                    node_data["weighted_score"] = round(score, 2)
+                    logging.debug(f"Added weighted score {score:.2f} to {node_data['node']} for metadata")
+
+                # Calculate tests completed if not already present
+                if "tests_completed" not in node_data:
+                    completed = sum(
+                        1
+                        for test_type in ["block", "history", "apicall", "config", "block_diff"]
+                        if isinstance(node_data.get(test_type), dict) and node_data[test_type].get("ok", False)
+                    )
+                    node_data["tests_completed"] = completed
+
+        # Make sure weighted scoring methodology is in the parameter section
+        if "parameter" in report and "weighted_scoring" not in report["parameter"]:
+            report["parameter"]["weighted_scoring"] = {
+                "weights": {
+                    "block": 0.30,
+                    "history": 0.25,
+                    "apicall": 0.25,
+                    "config": 0.05,
+                    "block_diff": 0.15,
+                },
+                "description": "Nodes are ordered by a weighted scoring system prioritizing real-world performance factors",
+            }
+
+        logging.info("Ensured weighted scores are calculated for all nodes before metadata update")
+
     # Update the JSON metadata if requested
     if args.update_metadata:
         try:
