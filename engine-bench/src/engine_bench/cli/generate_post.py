@@ -171,7 +171,7 @@ def main():
             permlink = generate_permlink(metadata["title"], date_str)
 
             # Get default tags
-            tags = ["hive-engine", "benchmark", "nodes", "performance", "api"]
+            tags = ["hive-engine", "benchmark", "nodes", "performance", "api", "sbi-skip"]
 
             # Post to Hive
             logging.info(f"Publishing post to Hive as @{account}...")

@@ -123,8 +123,8 @@ def main():
             return 1
 
         # Add title to metadata (just like engine-bench)
-        formatted_date = datetime.now().strftime("%d/%m/%Y")
-        metadata["title"] = f"Full Hive API Node Update - ({formatted_date})"
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        metadata["title"] = f"Hive Benchmark Report - {date_str}"
         logging.info(f"Added title to metadata: '{metadata['title']}'")
 
         # Save metadata to JSON file
@@ -183,7 +183,7 @@ def main():
             permlink = args.permlink or generate_permlink(metadata["title"], date_str)
 
             # Get default tags
-            tags = ["hive", "benchmark", "nodes", "performance", "api"]
+            tags = ["hive", "benchmark", "nodes", "performance", "api", "sbi-skip"]
             if args.tags:
                 tags = [t.strip() for t in args.tags.split(",")]
 
