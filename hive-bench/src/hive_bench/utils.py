@@ -8,7 +8,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 # Initial nodes list for benchmarking
 INITIAL_NODES = [
     "https://api.syncad.com",
-    "https://api.deathwing.me",
     "https://hive-api.arcange.eu",
     "https://api.openhive.network",
     "https://techcoderx.com",
