@@ -66,4 +66,4 @@ exclude = [
 default-groups = []
 
 [tool.uv.sources]
-hive-nectar = { git = "https://github.com/thecrazygm/hive-nectar" }
+hive-nectar = { git = "https://github.com/srbde/hive-nectar" }
